@@ -511,17 +511,6 @@ export default function App() {
             </motion.span>
             
             <div className="relative">
-              {/* Shadow sibling — shares latchX so it drags and snaps back in sync */}
-              <motion.div
-                style={{ x: latchX }}
-                className="absolute inset-0 pointer-events-none"
-                aria-hidden="true"
-              >
-                <div
-                  className="absolute inset-0 pulse-glow-anim"
-                  style={{ background: 'linear-gradient(to right, transparent, #2563EB)', transform: 'translate(4px, 4px)' }}
-                />
-              </motion.div>
               <motion.div 
                 style={{ x: latchX }}
                 drag="x"
