@@ -313,7 +313,7 @@ export default function App() {
 
         /* Mobile: slow elegant scroll, no filters, no blur */
         .state-of-art-marquee {
-          animation: modern-marquee 22s infinite linear;
+          animation: modern-marquee 40s infinite linear;
           display: inline-block;
           white-space: nowrap;
           will-change: transform;
@@ -324,7 +324,7 @@ export default function App() {
         /* Desktop: full glitch with safe GPU properties only */
         @media (min-width: 768px) {
           .state-of-art-marquee {
-            animation: modern-marquee-desktop 15s infinite linear;
+            animation: modern-marquee-desktop 30s infinite linear;
             will-change: transform, opacity;
           }
         }
@@ -332,7 +332,7 @@ export default function App() {
         /* Reduced motion: no animation at all */
         @media (prefers-reduced-motion: reduce) {
           .state-of-art-marquee {
-            animation: modern-marquee 30s infinite linear !important;
+            animation: modern-marquee 60s infinite linear !important;
           }
         }
 
