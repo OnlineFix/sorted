@@ -263,6 +263,28 @@ export default function App() {
           -webkit-backface-visibility: hidden;
           backface-visibility: hidden;
         }
+
+        /* Pulsing blue gradient shadow — used on latch + protocol button */
+        @keyframes pulse-blue-shadow {
+          0%, 100% {
+            box-shadow: 6px 6px 0px 0px #2563EB, 0 4px 24px rgba(37, 99, 235, 0.3);
+          }
+          50% {
+            box-shadow: 8px 8px 0px 0px #1E3A8A, 0 6px 42px rgba(37, 99, 235, 0.65);
+          }
+        }
+        @keyframes pulse-blue-shadow-sm {
+          0%, 100% {
+            box-shadow: 4px 4px 0px 0px #2563EB, 0 2px 18px rgba(37, 99, 235, 0.3);
+          }
+          50% {
+            box-shadow: 6px 6px 0px 0px #1E3A8A, 0 4px 32px rgba(37, 99, 235, 0.65);
+          }
+        }
+        .pulse-blue-btn { animation: pulse-blue-shadow 2.2s ease-in-out infinite; }
+        .pulse-blue-btn:active { animation: none; box-shadow: 2px 2px 0px 0px #2563EB; }
+        .pulse-blue-latch { animation: pulse-blue-shadow-sm 2.2s ease-in-out infinite; }
+        .pulse-blue-latch:active { animation: none; box-shadow: none; }
       `}</style>
 
       {/* CUSTOM CURSOR — desktop only, completely removed from DOM on mobile */}
@@ -399,7 +421,7 @@ export default function App() {
               dragElastic={{ left: 0.4, right: 0.05 }}
               onDragEnd={handleLatchDragEnd}
               whileTap={{ scale: 0.95 }}
-              className="h-5 w-24 md:w-32 border-2 border-black overflow-hidden relative cursor-grab shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-[0px_0px_0px_0px_rgba(0,0,0,1)] transition-shadow bg-white touch-pan-y"
+              className="h-5 w-24 md:w-32 border-2 border-black overflow-hidden relative cursor-grab pulse-blue-latch bg-white touch-pan-y"
             >
               <motion.div 
                 className="absolute top-0 -left-[28.28px] h-full w-[calc(100%+60px)] gpu-layer"
@@ -540,7 +562,7 @@ export default function App() {
             
             <button 
               onClick={() => setManifestoOpen(!manifestoOpen)}
-              className="font-mono text-[10px] md:text-xs font-black uppercase tracking-widest bg-black text-white px-3 md:px-4 py-2.5 md:py-3 flex items-center gap-2 hover:bg-blue-600 hover:text-white transition-colors border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] md:cursor-none"
+              className="font-mono text-[10px] md:text-xs font-black uppercase tracking-widest bg-black text-white px-3 md:px-4 py-2.5 md:py-3 flex items-center gap-2 hover:bg-blue-600 hover:text-white transition-colors border-4 border-black pulse-blue-btn active:translate-x-[2px] active:translate-y-[2px] md:cursor-none"
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               {manifestoOpen ? '[-] "CLOSE_PROTOCOL"' : '[+] "READ_PROTOCOL"'}
