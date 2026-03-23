@@ -578,11 +578,11 @@ export default function App() {
             <div className="flex flex-col gap-0.5 md:gap-1 pl-3 md:pl-4 text-right justify-start md:justify-end items-end">
               <span className="text-gray-400 font-bold tracking-widest">Inbound</span>
               <a 
-                href="mailto:intake@sorted.repair" 
+                href="mailto:hello@onlinefix.uk" 
                 className="font-black text-black active:bg-blue-600 active:text-white md:hover:bg-blue-600 md:hover:text-white transition-all px-1.5 md:px-2 py-0.5 md:py-1 -mr-1.5 md:-mr-2 pointer-events-auto md:cursor-none border-2 border-transparent active:border-black md:hover:border-black"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
               >
-                "intake@sorted.repair"
+                "hello@onlinefix.uk"
               </a>
             </div>
           </footer>
