@@ -74,8 +74,63 @@ function GeoLine({ x1, y1, length, angle, delay = 0 }) {
     />
   );
 }
+// --- HIGH-DENSITY PIXEL BAR ---
+function PixelMatrixBar() {
+  const canvasRef = useRef(null);
+  
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d', { alpha: false });
+    let animationFrameId;
+    
+    // Cyberpunk palette: White, Cyan, Red, Blue, Black/Dark
+    const colors = [
+      [255, 255, 255], // White
+      [0, 230, 246],   // Cyan
+      [255, 0, 60],    // Red
+      [37, 99, 235],   // Blue
+      [10, 10, 15]     // Dark
+    ];
+    
+    const render = () => {
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.width = Math.floor(canvas.offsetWidth * dpr);
+      const h = canvas.height = Math.floor(canvas.offsetHeight * dpr);
+      
+      if (w === 0 || h === 0) {
+        animationFrameId = requestAnimationFrame(render);
+        return;
+      }
+      
+      const imageData = ctx.createImageData(w, h);
+      const data = imageData.data;
+      
+      for (let i = 0; i < data.length; i += 4) {
+        const rand = Math.random();
+        let c = colors[4]; // Default to dark
+        
+        if (rand > 0.95) c = colors[0];
+        else if (rand > 0.85) c = colors[1];
+        else if (rand > 0.75) c = colors[2];
+        else if (rand > 0.40) c = colors[3];
+        
+        data[i] = c[0];
+        data[i+1] = c[1];
+        data[i+2] = c[2];
+        data[i+3] = 255; // fully opaque
+      }
+      
+      ctx.putImageData(imageData, 0, 0);
+      animationFrameId = requestAnimationFrame(render);
+    };
+    
+    render();
+    return () => cancelAnimationFrame(animationFrameId);
+  }, []);
 
-
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover rounded-none pointer-events-none" />;
+}
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -112,7 +167,6 @@ export default function App() {
   // --- SECURITY LATCH ---
   const latchX = useMotionValue(0);
   const pullOpacity = useTransform(latchX, [0, -40], [1, 0]);
-  const pullColor = useTransform(latchX, [0, -50], ["rgba(255,0,60,0)", "rgba(255,0,60,0.85)"]);
 
   const handleLatchDragEnd = (event, info) => {
     if (info.offset.x < -40) {
@@ -434,16 +488,7 @@ export default function App() {
                 whileTap={{ scale: 0.95 }}
                 className="h-5 w-24 md:w-32 border-2 border-black overflow-hidden relative z-[2] cursor-grab bg-white touch-pan-y"
               >
-                <motion.div 
-                  className="absolute top-0 -left-[28.28px] h-full w-[calc(100%+60px)] gpu-layer"
-                  style={{ background: hazardStripe }}
-                  animate={{ x: [0, 28.28] }}
-                  transition={{ repeat: Infinity, ease: "linear", duration: 0.8 }}
-                />
-                <motion.div 
-                  className="absolute inset-0 pointer-events-none mix-blend-multiply"
-                  style={{ backgroundColor: pullColor }}
-                />
+                <PixelMatrixBar />
               </motion.div>
             </div>
           </div>
