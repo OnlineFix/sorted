@@ -264,36 +264,29 @@ export default function App() {
           backface-visibility: hidden;
         }
 
-        /* Gradient pseudo-element shadow — fixed offset, opacity-only pulse */
+        /* Gradient wrapper shadow — transparent→blue, opacity-only pulse */
         @keyframes pulse-blue-glow {
           0%, 100% { opacity: 0.75; }
           50% { opacity: 1; }
         }
-
-        /* Button shadow: 6px offset, gradient left→right */
-        .pulse-blue-btn { position: relative; z-index: 0; }
-        .pulse-blue-btn::after {
+        .pulse-shadow-wrap,
+        .pulse-shadow-wrap-sm {
+          position: relative;
+          display: inline-flex;
+        }
+        .pulse-shadow-wrap::after,
+        .pulse-shadow-wrap-sm::after {
           content: '';
           position: absolute;
           inset: 0;
-          background: linear-gradient(to right, #60A5FA, #1E3A8A);
-          transform: translate(6px, 6px);
-          z-index: -1;
+          background: linear-gradient(to right, transparent, #2563EB);
+          z-index: 1;
+          pointer-events: none;
           animation: pulse-blue-glow 2.2s ease-in-out infinite;
         }
-        .pulse-blue-btn:active::after { transform: translate(2px, 2px); animation: none; opacity: 0.9; }
-
-        /* Latch wrapper shadow: 4px offset, gradient left→right */
-        .pulse-blue-latch-wrap { position: relative; z-index: 0; }
-        .pulse-blue-latch-wrap::after {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(to right, #60A5FA, #1E3A8A);
-          transform: translate(4px, 4px);
-          z-index: -1;
-          animation: pulse-blue-glow 2.2s ease-in-out infinite;
-        }
+        .pulse-shadow-wrap::after      { transform: translate(6px, 6px); }
+        .pulse-shadow-wrap-sm::after   { transform: translate(4px, 4px); }
+        .pulse-shadow-wrap:active::after { transform: translate(2px, 2px); animation: none; }
       `}</style>
 
       {/* CUSTOM CURSOR — desktop only, completely removed from DOM on mobile */}
@@ -423,7 +416,7 @@ export default function App() {
               &lt; PULL_OVERRIDE
             </motion.span>
             
-            <div className="pulse-blue-latch-wrap">
+            <div className="pulse-shadow-wrap-sm">
             <motion.div 
               style={{ x: latchX }}
               drag="x"
@@ -431,7 +424,7 @@ export default function App() {
               dragElastic={{ left: 0.4, right: 0.05 }}
               onDragEnd={handleLatchDragEnd}
               whileTap={{ scale: 0.95 }}
-              className="h-5 w-24 md:w-32 border-2 border-black overflow-hidden relative cursor-grab bg-white touch-pan-y"
+              className="h-5 w-24 md:w-32 border-2 border-black overflow-hidden relative z-[2] cursor-grab bg-white touch-pan-y"
             >
               <motion.div 
                 className="absolute top-0 -left-[28.28px] h-full w-[calc(100%+60px)] gpu-layer"
@@ -571,13 +564,15 @@ export default function App() {
               )}
             </AnimatePresence>
             
-            <button 
-              onClick={() => setManifestoOpen(!manifestoOpen)}
-              className="font-mono text-[10px] md:text-xs font-black uppercase tracking-widest bg-black text-white px-3 md:px-4 py-2.5 md:py-3 flex items-center gap-2 hover:bg-blue-600 hover:text-white transition-colors border-4 border-black pulse-blue-btn active:translate-x-[2px] active:translate-y-[2px] md:cursor-none"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              {manifestoOpen ? '[-] "CLOSE_PROTOCOL"' : '[+] "READ_PROTOCOL"'}
-            </button>
+                        <div className="pulse-shadow-wrap">
+              <button 
+                onClick={() => setManifestoOpen(!manifestoOpen)}
+                className="font-mono text-[10px] md:text-xs font-black uppercase tracking-widest bg-black text-white px-3 md:px-4 py-2.5 md:py-3 flex items-center gap-2 hover:bg-blue-600 hover:text-white transition-colors border-4 border-black relative z-[2] active:translate-x-[2px] active:translate-y-[2px] md:cursor-none"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+              >
+                {manifestoOpen ? '[-] "CLOSE_PROTOCOL"' : '[+] "READ_PROTOCOL"'}
+              </button>
+            </div>
           </div>
 
 
