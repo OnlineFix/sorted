@@ -74,7 +74,7 @@ function GeoLine({ x1, y1, length, angle, delay = 0 }) {
     />
   );
 }
-// --- HIGH-DENSITY PIXEL BAR ---
+// --- LIVING DATA STREAM BAR ---
 function PixelMatrixBar() {
   const canvasRef = useRef(null);
   
@@ -84,52 +84,95 @@ function PixelMatrixBar() {
     const ctx = canvas.getContext('2d', { alpha: false });
     let animationFrameId;
     
-    // Cyberpunk palette: White, Cyan, Red, Blue, Black/Dark
-    const colors = [
-      [255, 255, 255], // White
-      [0, 230, 246],   // Cyan
-      [255, 0, 60],    // Red
-      [37, 99, 235],   // Blue
-      [10, 10, 15]     // Dark
-    ];
+    let logicalW, logicalH;
+    let particles = [];
+    const particleCount = 200; // Dense enough for a beautiful stream
     
-    const render = () => {
+    // Cyberpunk/Premium palette: Brand Blue, Electric Cyan, Pure White, Neon Pink
+    const colors = ['#2563EB', '#00E6F6', '#FFFFFF', '#FF003C'];
+
+    const init = () => {
       const dpr = window.devicePixelRatio || 1;
-      const w = canvas.width = Math.floor(canvas.offsetWidth * dpr);
-      const h = canvas.height = Math.floor(canvas.offsetHeight * dpr);
+      logicalW = canvas.offsetWidth;
+      logicalH = canvas.offsetHeight;
       
-      if (w === 0 || h === 0) {
-        animationFrameId = requestAnimationFrame(render);
-        return;
+      canvas.width = logicalW * dpr;
+      canvas.height = logicalH * dpr;
+      ctx.scale(dpr, dpr);
+      
+      particles = [];
+      for(let i=0; i<particleCount; i++) {
+        particles.push({
+          x: Math.random() * logicalW,
+          y: Math.random() * logicalH,
+          vx: Math.random() * 2 + 1.5, // Force moving right
+          vy: 0,
+          size: Math.random() * 1.5 + 0.5,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          phase: Math.random() * Math.PI * 2
+        });
       }
+    };
+
+    let time = 0;
+    const render = () => {
+      time += 0.05;
       
-      const imageData = ctx.createImageData(w, h);
-      const data = imageData.data;
+      // Draw a translucent black background to create smooth motion trails (ghosting)
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = 'rgba(10, 10, 15, 0.25)'; 
+      ctx.fillRect(0, 0, logicalW, logicalH);
       
-      for (let i = 0; i < data.length; i += 4) {
-        const rand = Math.random();
-        let c = colors[4]; // Default to dark
+      // Switch to additive blending for bright, glowing overlap
+      ctx.globalCompositeOperation = 'screen';
+      
+      particles.forEach(p => {
+        // Smooth sine wave organic movement
+        p.vy = Math.sin((p.x * 0.03) + time + p.phase) * 0.8;
         
-        if (rand > 0.95) c = colors[0];
-        else if (rand > 0.85) c = colors[1];
-        else if (rand > 0.75) c = colors[2];
-        else if (rand > 0.40) c = colors[3];
+        p.x += p.vx;
+        p.y += p.vy;
         
-        data[i] = c[0];
-        data[i+1] = c[1];
-        data[i+2] = c[2];
-        data[i+3] = 255; // fully opaque
-      }
+        // Wrap around seamlessly
+        if (p.x > logicalW + 5) {
+          p.x = -5;
+          p.y = Math.random() * logicalH;
+        }
+        
+        // Render the glowing particle
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        // Add native canvas glow to the brightest/largest particles
+        if (p.size > 1.2) {
+          ctx.shadowBlur = 6;
+          ctx.shadowColor = p.color;
+        } else {
+          ctx.shadowBlur = 0;
+        }
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
       
-      ctx.putImageData(imageData, 0, 0);
+      // Reset shadow for next frame's background clear
+      ctx.shadowBlur = 0;
+      
       animationFrameId = requestAnimationFrame(render);
     };
     
+    // Small delay to ensure layout is ready
+    setTimeout(init, 50);
     render();
-    return () => cancelAnimationFrame(animationFrameId);
+    
+    const handleResize = () => init();
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover rounded-none pointer-events-none" />;
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ borderRadius: '0px' }} />;
 }
 
 export default function App() {
