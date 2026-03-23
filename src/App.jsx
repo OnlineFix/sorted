@@ -269,24 +269,21 @@ export default function App() {
           0%, 100% { opacity: 0.75; }
           50% { opacity: 1; }
         }
-        .pulse-shadow-wrap,
-        .pulse-shadow-wrap-sm {
-          position: relative;
-          display: inline-flex;
-        }
-        .pulse-shadow-wrap::after,
-        .pulse-shadow-wrap-sm::after {
+        /* Button shadow via ::after */
+        .pulse-shadow-wrap { position: relative; display: inline-flex; }
+        .pulse-shadow-wrap::after {
           content: '';
           position: absolute;
           inset: 0;
           background: linear-gradient(to right, transparent, #2563EB);
           z-index: 1;
           pointer-events: none;
+          transform: translate(6px, 6px);
           animation: pulse-blue-glow 2.2s ease-in-out infinite;
         }
-        .pulse-shadow-wrap::after      { transform: translate(6px, 6px); }
-        .pulse-shadow-wrap-sm::after   { transform: translate(4px, 4px); }
         .pulse-shadow-wrap:active::after { transform: translate(2px, 2px); animation: none; }
+        /* Latch shadow animation — applied to sibling motion.div */
+        .pulse-glow-anim { animation: pulse-blue-glow 2.2s ease-in-out infinite; }
       `}</style>
 
       {/* CUSTOM CURSOR — desktop only, completely removed from DOM on mobile */}
@@ -416,27 +413,38 @@ export default function App() {
               &lt; PULL_OVERRIDE
             </motion.span>
             
-            <div className="pulse-shadow-wrap-sm">
-            <motion.div 
-              style={{ x: latchX }}
-              drag="x"
-              dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={{ left: 0.4, right: 0.05 }}
-              onDragEnd={handleLatchDragEnd}
-              whileTap={{ scale: 0.95 }}
-              className="h-5 w-24 md:w-32 border-2 border-black overflow-hidden relative z-[2] cursor-grab bg-white touch-pan-y"
-            >
+            <div className="relative">
+              {/* Shadow sibling — shares latchX so it drags and snaps back in sync */}
+              <motion.div
+                style={{ x: latchX }}
+                className="absolute inset-0 pointer-events-none"
+                aria-hidden="true"
+              >
+                <div
+                  className="absolute inset-0 pulse-glow-anim"
+                  style={{ background: 'linear-gradient(to right, transparent, #2563EB)', transform: 'translate(4px, 4px)' }}
+                />
+              </motion.div>
               <motion.div 
-                className="absolute top-0 -left-[28.28px] h-full w-[calc(100%+60px)] gpu-layer"
-                style={{ background: hazardStripe }}
-                animate={{ x: [0, 28.28] }}
-                transition={{ repeat: Infinity, ease: "linear", duration: 0.8 }}
-              />
-              <motion.div 
-                className="absolute inset-0 pointer-events-none mix-blend-multiply"
-                style={{ backgroundColor: pullColor }}
-              />
-            </motion.div>
+                style={{ x: latchX }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={{ left: 0.4, right: 0.05 }}
+                onDragEnd={handleLatchDragEnd}
+                whileTap={{ scale: 0.95 }}
+                className="h-5 w-24 md:w-32 border-2 border-black overflow-hidden relative z-[2] cursor-grab bg-white touch-pan-y"
+              >
+                <motion.div 
+                  className="absolute top-0 -left-[28.28px] h-full w-[calc(100%+60px)] gpu-layer"
+                  style={{ background: hazardStripe }}
+                  animate={{ x: [0, 28.28] }}
+                  transition={{ repeat: Infinity, ease: "linear", duration: 0.8 }}
+                />
+                <motion.div 
+                  className="absolute inset-0 pointer-events-none mix-blend-multiply"
+                  style={{ backgroundColor: pullColor }}
+                />
+              </motion.div>
             </div>
           </div>
         </header>
