@@ -635,20 +635,20 @@ export default function App() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                  className="absolute bottom-[calc(100%+12px)] md:bottom-[calc(100%+16px)] left-4 md:left-6 mb-2 w-[calc(100vw-2rem)] md:w-[420px] bg-white/95 backdrop-blur-md border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] md:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] text-[10px] md:text-xs font-mono origin-bottom-left overflow-hidden"
+                  className="absolute bottom-[calc(100%+12px)] md:bottom-[calc(100%+16px)] left-4 md:left-6 mb-2 w-[calc(100vw-2rem)] md:w-[420px] bg-black/95 backdrop-blur-md border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] md:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] text-[10px] md:text-xs font-mono origin-bottom-left overflow-hidden"
                 >
-                  <div className="bg-black text-white px-3 md:px-4 py-2 flex justify-between items-center border-b-4 border-black">
+                  <div className="bg-gray-900 text-white px-3 md:px-4 py-2 flex justify-between items-center border-b-4 border-black">
                     <span className="font-bold tracking-widest uppercase truncate pr-4 text-[9px] md:text-xs">SYS_Protocol // "MANIFESTO"</span>
                     <span className="text-blue-500 animate-pulse flex items-center gap-1.5 md:gap-2 shrink-0 text-[9px] md:text-xs"><Radio size={10}/> LIVE</span>
                   </div>
-                  <div className="p-3 md:p-6 space-y-3 md:space-y-4 text-black leading-relaxed max-h-[45vh] md:max-h-[50vh] overflow-y-auto ios-scroll">
-                    <p>Modern consoles are highly engineered machines. <span className="bg-black text-white px-1 font-black">The industry that fixes them is a mess.</span></p>
+                  <div className="p-3 md:p-6 space-y-3 md:space-y-4 text-gray-400 leading-relaxed max-h-[45vh] md:max-h-[50vh] overflow-y-auto ios-scroll">
+                    <p>Modern consoles are highly engineered machines. <span className="text-white font-black block mt-1">The industry that fixes them is a mess.</span></p>
                     <p>Traditional repair shops hide behind cluttered high-street counters. They use cheap parts to cover expensive rent, and they treat the repair process like a secret. We reject that model.</p>
-                    <p className="font-black text-blue-600 text-sm md:text-base uppercase underline decoration-2 underline-offset-4">"SORTED" is a structural shift.</p>
+                    <p className="font-black text-blue-500 text-sm md:text-base uppercase underline decoration-2 underline-offset-4">"SORTED" is a structural shift.</p>
                     <p>We stripped away the retail storefront entirely. Operating as a closed-door micro-lab out of Guildford, we removed the noise to focus purely on the hardware. No waiting rooms. No upselling. Just a hyper-focused workbench serving the entire UK.</p>
                     <p>We believe in open-source engineering. We don't just fix devices in the dark; we deconstruct, optimize, and document. The exact hardware intervention, the premium thermal compounds applied, and the final diagnostic stress tests are recorded and handed back to you.</p>
-                    <div className="pt-2 border-t-2 border-dashed border-gray-300">
-                      <p className="text-white p-2 inline-block font-bold text-[10px] md:text-sm tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] uppercase" style={{ background: brandGradient }}>
+                    <div className="pt-2 border-t-2 border-dashed border-gray-800">
+                      <p className="text-white p-2 inline-block font-bold text-[10px] md:text-sm tracking-widest shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] uppercase" style={{ background: brandGradient }}>
                         TOTAL_TRANSPARENCY.<br/>BROKEN_IN.<br/>SORTED_OUT.
                       </p>
                     </div>
