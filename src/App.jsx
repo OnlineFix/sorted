@@ -197,14 +197,9 @@ export default function App() {
   const isMobile = useIsMobile();
   const prefersReducedMotion = usePrefersReducedMotion();
 
-  // --- PARALLAX & CURSOR PHYSICS (desktop only) ---
+  // --- PARALLAX PHYSICS (desktop only) ---
   const mouseX = useMotionValue(typeof window !== 'undefined' ? window.innerWidth / 2 : 0);
   const mouseY = useMotionValue(typeof window !== 'undefined' ? window.innerHeight / 2 : 0);
-  
-  const cursorX = useSpring(mouseX, { stiffness: 1000, damping: 40 });
-  const cursorY = useSpring(mouseY, { stiffness: 1000, damping: 40 });
-  const cursorRingX = useSpring(mouseX, { stiffness: 200, damping: 25 });
-  const cursorRingY = useSpring(mouseY, { stiffness: 200, damping: 25 });
 
   // Parallax disabled on mobile for performance — just sits at center
   const parallaxX = useSpring(mouseX, { stiffness: 40, damping: 30 });
@@ -295,7 +290,7 @@ export default function App() {
     <div 
       ref={containerRef}
       onMouseMove={handleMouseMove}
-      className={`relative h-[100dvh] w-full overflow-hidden bg-[#F4F4F5] text-black selection:bg-black selection:text-white font-sans flex flex-col ${isMobile ? 'cursor-auto' : 'cursor-none'}`}
+      className={`relative h-[100dvh] w-full overflow-hidden bg-[#F4F4F5] text-black selection:bg-black selection:text-white font-sans flex flex-col ${isMobile ? 'cursor-auto' : 'cursor-crosshair'}`}
       style={{ 
         /* iPhone safe areas */
         paddingTop: 'env(safe-area-inset-top, 0px)',
@@ -396,19 +391,7 @@ export default function App() {
         .pulse-glow-anim { animation: pulse-blue-glow 2.2s ease-in-out infinite; }
       `}</style>
 
-      {/* CUSTOM CURSOR — desktop only, completely removed from DOM on mobile */}
-      {!isMobile && (
-        <>
-          <motion.div 
-            className="fixed top-0 left-0 w-2 h-2 bg-black rounded-full pointer-events-none z-[999]"
-            style={{ x: cursorX, y: cursorY, translateX: '-50%', translateY: '-50%' }}
-          />
-          <motion.div 
-            className="fixed top-0 left-0 w-8 h-8 border border-black/30 rounded-full pointer-events-none z-[998]"
-            style={{ x: cursorRingX, y: cursorRingY, translateX: '-50%', translateY: '-50%' }}
-          />
-        </>
-      )}
+
 
       {/* TEXTURES & OVERLAYS */}
       {/* Grid — GPU-friendly, no filter */}
@@ -670,7 +653,7 @@ export default function App() {
                 >
                   <button 
                     onClick={() => setManifestoOpen(!manifestoOpen)}
-                    className="font-mono text-[10px] md:text-xs font-black uppercase tracking-widest bg-black text-white px-3 md:px-4 py-2.5 md:py-3 flex items-center gap-2 hover:bg-blue-600 hover:text-white transition-colors border-4 border-black relative z-[2] active:translate-x-[2px] active:translate-y-[2px] md:cursor-none"
+                    className="font-mono text-[10px] md:text-xs font-black uppercase tracking-widest bg-black text-white px-3 md:px-4 py-2.5 md:py-3 flex items-center gap-2 hover:bg-blue-600 hover:text-white transition-colors border-4 border-black relative z-[2] active:translate-x-[2px] active:translate-y-[2px]"
                     style={{ WebkitTapHighlightColor: 'transparent' }}
                   >
                     {manifestoOpen ? '[-] "CLOSE_PROTOCOL"' : '[+] "READ_PROTOCOL"'}
@@ -712,7 +695,7 @@ export default function App() {
               <span className="text-gray-400 font-bold tracking-widest">Inbound</span>
               <a 
                 href="mailto:hello@onlinefix.uk" 
-                className="font-black text-black active:bg-blue-600 active:text-white md:hover:bg-blue-600 md:hover:text-white transition-all px-1.5 md:px-2 py-0.5 md:py-1 -mr-1.5 md:-mr-2 pointer-events-auto md:cursor-none border-2 border-transparent active:border-black md:hover:border-black"
+                className="font-black text-black active:bg-blue-600 active:text-white md:hover:bg-blue-600 md:hover:text-white transition-all px-1.5 md:px-2 py-0.5 md:py-1 -mr-1.5 md:-mr-2 pointer-events-auto border-2 border-transparent active:border-black md:hover:border-black"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
               >
                 hello@onlinefix.uk
