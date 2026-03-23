@@ -190,6 +190,7 @@ export default function App() {
   const [progress, setProgress] = useState(0);
   const [time, setTime] = useState('');
   const [manifestoOpen, setManifestoOpen] = useState(false);
+  const [isProtocolUnlocked, setIsProtocolUnlocked] = useState(false);
   const [systemText, setSystemText] = useState('"TELEMETRY_INDEX" // CLASSIFIED');
   const containerRef = useRef(null);
   
@@ -225,6 +226,7 @@ export default function App() {
   const handleLatchDragEnd = (event, info) => {
     if (info.offset.x < -40) {
       setManifestoOpen((prev) => !prev);
+      setIsProtocolUnlocked(true);
       setSystemText('!!! OVERRIDE_GRANTED !!!');
       setTimeout(() => {
         setSystemText('"TELEMETRY_INDEX" // CLASSIFIED');
@@ -672,15 +674,24 @@ export default function App() {
               )}
             </AnimatePresence>
             
-                        <div className="pulse-shadow-wrap">
-              <button 
-                onClick={() => setManifestoOpen(!manifestoOpen)}
-                className="font-mono text-[10px] md:text-xs font-black uppercase tracking-widest bg-black text-white px-3 md:px-4 py-2.5 md:py-3 flex items-center gap-2 hover:bg-blue-600 hover:text-white transition-colors border-4 border-black relative z-[2] active:translate-x-[2px] active:translate-y-[2px] md:cursor-none"
-                style={{ WebkitTapHighlightColor: 'transparent' }}
-              >
-                {manifestoOpen ? '[-] "CLOSE_PROTOCOL"' : '[+] "READ_PROTOCOL"'}
-              </button>
-            </div>
+            <AnimatePresence>
+              {isProtocolUnlocked && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.8, x: -20 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  className="pulse-shadow-wrap"
+                >
+                  <button 
+                    onClick={() => setManifestoOpen(!manifestoOpen)}
+                    className="font-mono text-[10px] md:text-xs font-black uppercase tracking-widest bg-black text-white px-3 md:px-4 py-2.5 md:py-3 flex items-center gap-2 hover:bg-blue-600 hover:text-white transition-colors border-4 border-black relative z-[2] active:translate-x-[2px] active:translate-y-[2px] md:cursor-none"
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
+                  >
+                    {manifestoOpen ? '[-] "CLOSE_PROTOCOL"' : '[+] "READ_PROTOCOL"'}
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
 
