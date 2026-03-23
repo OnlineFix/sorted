@@ -682,8 +682,8 @@ export default function App() {
             style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.75rem)' }}
           >
             <div className="flex flex-col gap-0.5 md:gap-1 border-r-2 border-black/15 pr-3 md:pr-4">
-              <span className="text-gray-400 font-bold tracking-widest">Node_Location</span>
-              <span className="font-black text-black">GU_UK</span>
+              <span className="text-gray-400 font-bold tracking-widest whitespace-nowrap">Node_Location</span>
+              <span className="font-black text-black">UNITED KINGDOM</span>
             </div>
             {/* Status column — hidden on mobile, visible md+ */}
             <div className="flex flex-col gap-0.5 md:gap-1 border-r-2 border-black/15 px-2 md:px-4 items-center">
@@ -696,7 +696,7 @@ export default function App() {
                 ASCENDING
               </span>
             </div>
-            <div className="flex flex-col gap-0.5 md:gap-1 pl-3 md:pl-4 text-right justify-start md:justify-end items-end">
+            <div className="flex flex-col gap-0.5 md:gap-1 pl-3 md:pl-4 text-right items-end">
               <span className="text-gray-400 font-bold tracking-widest">Inbound</span>
               <a 
                 href="mailto:hello@onlinefix.uk" 
