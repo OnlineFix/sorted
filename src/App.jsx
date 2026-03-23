@@ -498,7 +498,7 @@ export default function App() {
       <div className="relative flex-1 w-full flex flex-col justify-between pt-4 md:pt-6 z-10">
         
         {/* TOP HEADER */}
-        <header className="px-4 md:px-6 flex justify-between items-start pointer-events-none relative z-50">
+        <header className="px-4 md:px-6 flex justify-between items-center md:items-start pointer-events-none relative z-50">
           <div className="font-mono text-[10px] md:text-xs font-bold uppercase tracking-widest flex flex-col gap-1 text-black">
             <span className="flex items-center gap-2">
               <span className="relative flex h-2 w-2">
