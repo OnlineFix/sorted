@@ -620,21 +620,7 @@ export default function App() {
                   </div>
                 </motion.div>
 
-                {/* Subtitle */}
-                <motion.p 
-                  variants={heroItem}
-                  className="font-mono text-[8px] sm:text-[9px] md:text-xs uppercase tracking-[0.2em] sm:tracking-[0.35em] text-gray-500 mt-5 sm:mt-6 md:mt-10 text-center select-none px-4"
-                  style={isMobile ? {} : { transform: "translateZ(40px)" }}
-                >
-                  High-Performance Hardware Intervention
-                </motion.p>
 
-                {/* Accent line */}
-                <motion.div
-                  variants={heroItem}
-                  className="mt-2.5 sm:mt-3 md:mt-4 h-[2px] sm:h-[3px] w-12 sm:w-16 md:w-24"
-                  style={{ background: brandGradient, ...(isMobile ? {} : { transform: "translateZ(40px)" }) }}
-                />
               </motion.div>
             </motion.div>
           </motion.div>
