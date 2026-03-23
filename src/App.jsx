@@ -665,9 +665,9 @@ export default function App() {
 
 
           {/* MARQUEE — GPU-accelerated, simplified on mobile */}
-          <div className="overflow-hidden whitespace-nowrap border-y-2 md:border-y-4 border-black bg-black text-white py-2 md:py-4 mt-1 md:mt-0 flex items-center pointer-events-none w-full gpu-layer">
-            <div className="state-of-art-marquee flex whitespace-nowrap font-mono text-[10px] sm:text-sm md:text-xl font-bold uppercase tracking-[0.15em] md:tracking-widest">
-              <span>{marqueeText.repeat(4)}</span>
+          <div className="overflow-hidden whitespace-nowrap border-y-2 md:border-y-4 border-black bg-black text-white py-1 md:py-2 mt-1 md:mt-0 flex items-center pointer-events-none w-full gpu-layer">
+            <div className="state-of-art-marquee flex whitespace-nowrap font-mono text-[10px] sm:text-sm md:text-xl font-bold uppercase tracking-[0.15em] md:tracking-widest leading-none">
+              <span className="leading-none mb-0.5 md:mb-1">{marqueeText.repeat(4)}</span>
             </div>
           </div>
 
