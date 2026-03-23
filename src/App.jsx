@@ -264,27 +264,36 @@ export default function App() {
           backface-visibility: hidden;
         }
 
-        /* Pulsing blue gradient shadow — used on latch + protocol button */
-        @keyframes pulse-blue-shadow {
-          0%, 100% {
-            box-shadow: 6px 6px 0px 0px #2563EB, 0 4px 24px rgba(37, 99, 235, 0.3);
-          }
-          50% {
-            box-shadow: 8px 8px 0px 0px #1E3A8A, 0 6px 42px rgba(37, 99, 235, 0.65);
-          }
+        /* Gradient pseudo-element shadow — fixed offset, opacity-only pulse */
+        @keyframes pulse-blue-glow {
+          0%, 100% { opacity: 0.75; }
+          50% { opacity: 1; }
         }
-        @keyframes pulse-blue-shadow-sm {
-          0%, 100% {
-            box-shadow: 4px 4px 0px 0px #2563EB, 0 2px 18px rgba(37, 99, 235, 0.3);
-          }
-          50% {
-            box-shadow: 6px 6px 0px 0px #1E3A8A, 0 4px 32px rgba(37, 99, 235, 0.65);
-          }
+
+        /* Button shadow: 6px offset, gradient left→right */
+        .pulse-blue-btn { position: relative; z-index: 0; }
+        .pulse-blue-btn::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to right, #60A5FA, #1E3A8A);
+          transform: translate(6px, 6px);
+          z-index: -1;
+          animation: pulse-blue-glow 2.2s ease-in-out infinite;
         }
-        .pulse-blue-btn { animation: pulse-blue-shadow 2.2s ease-in-out infinite; }
-        .pulse-blue-btn:active { animation: none; box-shadow: 2px 2px 0px 0px #2563EB; }
-        .pulse-blue-latch { animation: pulse-blue-shadow-sm 2.2s ease-in-out infinite; }
-        .pulse-blue-latch:active { animation: none; box-shadow: none; }
+        .pulse-blue-btn:active::after { transform: translate(2px, 2px); animation: none; opacity: 0.9; }
+
+        /* Latch wrapper shadow: 4px offset, gradient left→right */
+        .pulse-blue-latch-wrap { position: relative; z-index: 0; }
+        .pulse-blue-latch-wrap::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to right, #60A5FA, #1E3A8A);
+          transform: translate(4px, 4px);
+          z-index: -1;
+          animation: pulse-blue-glow 2.2s ease-in-out infinite;
+        }
       `}</style>
 
       {/* CUSTOM CURSOR — desktop only, completely removed from DOM on mobile */}
@@ -414,6 +423,7 @@ export default function App() {
               &lt; PULL_OVERRIDE
             </motion.span>
             
+            <div className="pulse-blue-latch-wrap">
             <motion.div 
               style={{ x: latchX }}
               drag="x"
@@ -421,7 +431,7 @@ export default function App() {
               dragElastic={{ left: 0.4, right: 0.05 }}
               onDragEnd={handleLatchDragEnd}
               whileTap={{ scale: 0.95 }}
-              className="h-5 w-24 md:w-32 border-2 border-black overflow-hidden relative cursor-grab pulse-blue-latch bg-white touch-pan-y"
+              className="h-5 w-24 md:w-32 border-2 border-black overflow-hidden relative cursor-grab bg-white touch-pan-y"
             >
               <motion.div 
                 className="absolute top-0 -left-[28.28px] h-full w-[calc(100%+60px)] gpu-layer"
@@ -434,6 +444,7 @@ export default function App() {
                 style={{ backgroundColor: pullColor }}
               />
             </motion.div>
+            </div>
           </div>
         </header>
 
