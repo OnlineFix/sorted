@@ -590,7 +590,7 @@ export default function App() {
           >
             <div className="flex flex-col gap-0.5 md:gap-1 border-r-2 border-black/15 pr-3 md:pr-4">
               <span className="text-gray-400 font-bold tracking-widest">Node_Location</span>
-              <span className="font-black text-black">GLD_UK // [REDACTED]</span>
+              <span className="font-black text-black">GU_UK</span>
             </div>
             {/* Status column — hidden on mobile, visible md+ */}
             <div className="flex flex-col gap-0.5 md:gap-1 border-r-2 border-black/15 px-2 md:px-4 items-center">
