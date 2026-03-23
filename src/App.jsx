@@ -290,7 +290,7 @@ export default function App() {
     <div 
       ref={containerRef}
       onMouseMove={handleMouseMove}
-      className={`relative h-[100dvh] w-full overflow-hidden bg-[#F4F4F5] text-black selection:bg-black selection:text-white font-sans flex flex-col ${isMobile ? 'cursor-auto' : 'cursor-crosshair'}`}
+      className={`relative h-[100dvh] w-full overflow-hidden bg-[#F4F4F5] text-black selection:bg-black selection:text-white font-sans flex flex-col ${isMobile ? 'cursor-auto' : 'cursor-pointer'}`}
       style={{ 
         /* iPhone safe areas */
         paddingTop: 'env(safe-area-inset-top, 0px)',
