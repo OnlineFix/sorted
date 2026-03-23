@@ -557,7 +557,7 @@ export default function App() {
 
           {/* FOOTER — 2 columns on mobile, 3 on desktop */}
           <footer 
-            className="w-full p-3 pt-2.5 md:p-6 grid grid-cols-2 md:grid-cols-3 gap-y-2 font-mono text-[9px] sm:text-[10px] md:text-xs uppercase bg-[#F4F4F5] pointer-events-none mt-0.5 md:mt-0"
+            className="w-full p-3 pt-2.5 md:p-6 grid grid-cols-3 gap-y-2 font-mono text-[9px] sm:text-[10px] md:text-xs uppercase bg-[#F4F4F5] pointer-events-none mt-0.5 md:mt-0"
             style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.75rem)' }}
           >
             <div className="flex flex-col gap-0.5 md:gap-1 border-r-2 border-black/15 pr-3 md:pr-4">
@@ -565,7 +565,7 @@ export default function App() {
               <span className="font-black text-black">GLD_UK // [REDACTED]</span>
             </div>
             {/* Status column — hidden on mobile, visible md+ */}
-            <div className="hidden md:flex flex-col gap-1 border-r-2 border-black/15 px-4 items-center">
+            <div className="flex flex-col gap-0.5 md:gap-1 border-r-2 border-black/15 px-2 md:px-4 items-center">
               <span className="text-gray-400 font-bold tracking-widest">Status</span>
               <span className="font-black text-black flex items-center gap-1.5">
                 <span className="relative flex h-1.5 w-1.5">
