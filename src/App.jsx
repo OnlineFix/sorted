@@ -497,8 +497,12 @@ export default function App() {
                 <motion.div variants={heroItem} className="relative inline-flex items-center justify-center">
                   {/* Top-left hazard bracket */}
                   <div className="absolute -top-[20%] -left-[8%] md:-top-[20%] md:-left-[6%] w-10 h-10 sm:w-12 sm:h-12 md:w-28 md:h-28" style={isMobile ? {} : { transform: "translateZ(20px)" }}>
-                    <div className="absolute top-0 left-0 w-full h-1.5 sm:h-2 md:h-5" style={{ background: hazardStripe }} />
-                    <div className="absolute top-0 left-0 h-full w-1.5 sm:w-2 md:w-5" style={{ background: hazardStripe }} />
+                    <div className="absolute top-0 left-0 w-full h-1.5 sm:h-2 md:h-5 overflow-hidden">
+                      <motion.div className="absolute top-0 -left-[28.28px] h-full w-[calc(100%+60px)] gpu-layer" style={{ background: hazardStripe }} animate={{ x: [0, 28.28] }} transition={{ repeat: Infinity, ease: "linear", duration: 0.8 }} />
+                    </div>
+                    <div className="absolute top-0 left-0 h-full w-1.5 sm:w-2 md:w-5 overflow-hidden">
+                      <motion.div className="absolute top-0 -left-[28.28px] h-full w-[calc(100%+60px)] gpu-layer" style={{ background: hazardStripe }} animate={{ x: [0, 28.28] }} transition={{ repeat: Infinity, ease: "linear", duration: 0.8 }} />
+                    </div>
                   </div>
 
                   <h1 
@@ -513,8 +517,12 @@ export default function App() {
 
                   {/* Bottom-right hazard bracket */}
                   <div className="absolute -bottom-[20%] -right-[8%] md:-bottom-[20%] md:-right-[6%] w-10 h-10 sm:w-12 sm:h-12 md:w-28 md:h-28" style={isMobile ? {} : { transform: "translateZ(20px)" }}>
-                    <div className="absolute bottom-0 right-0 w-full h-1.5 sm:h-2 md:h-5" style={{ background: hazardStripe }} />
-                    <div className="absolute bottom-0 right-0 h-full w-1.5 sm:w-2 md:w-5" style={{ background: hazardStripe }} />
+                    <div className="absolute bottom-0 right-0 w-full h-1.5 sm:h-2 md:h-5 overflow-hidden">
+                      <motion.div className="absolute top-0 -left-[28.28px] h-full w-[calc(100%+60px)] gpu-layer" style={{ background: hazardStripe }} animate={{ x: [0, 28.28] }} transition={{ repeat: Infinity, ease: "linear", duration: 0.8 }} />
+                    </div>
+                    <div className="absolute bottom-0 right-0 h-full w-1.5 sm:w-2 md:w-5 overflow-hidden">
+                      <motion.div className="absolute top-0 -left-[28.28px] h-full w-[calc(100%+60px)] gpu-layer" style={{ background: hazardStripe }} animate={{ x: [0, 28.28] }} transition={{ repeat: Infinity, ease: "linear", duration: 0.8 }} />
+                    </div>
                   </div>
                 </motion.div>
 
