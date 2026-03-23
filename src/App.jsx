@@ -715,9 +715,9 @@ export default function App() {
             <div className="flex flex-col gap-0.5 md:gap-1 border-r-2 border-black/15 px-2 md:px-4 items-center">
               <span className="text-gray-400 font-bold tracking-widest">Status</span>
               <span className="font-black text-black flex items-center gap-1.5 py-0.5 md:py-1 border-2 border-transparent">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span>
+                <span className="relative flex items-center justify-center h-2.5 w-2.5">
+                  <span className="absolute h-1 w-1 rounded-full bg-amber-500"></span>
+                  <span className="absolute h-full w-full rounded-full border border-amber-500/20 border-t-amber-500 animate-[spin_1.5s_linear_infinite]"></span>
                 </span>
                 ASCENDING
               </span>
