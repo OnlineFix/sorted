@@ -715,7 +715,7 @@ export default function App() {
                 className="font-black text-black active:bg-blue-600 active:text-white md:hover:bg-blue-600 md:hover:text-white transition-all px-1.5 md:px-2 py-0.5 md:py-1 -mr-1.5 md:-mr-2 pointer-events-auto md:cursor-none border-2 border-transparent active:border-black md:hover:border-black"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
               >
-                "hello@onlinefix.uk"
+                hello@onlinefix.uk
               </a>
             </div>
           </footer>
