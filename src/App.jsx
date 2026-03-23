@@ -75,8 +75,13 @@ function GeoLine({ x1, y1, length, angle, delay = 0 }) {
   );
 }
 // --- LIVING DATA STREAM BAR ---
-function PixelMatrixBar() {
+function PixelMatrixBar({ isPressed = false }) {
   const canvasRef = useRef(null);
+  const pressRef = useRef(isPressed);
+  
+  useEffect(() => {
+    pressRef.current = isPressed;
+  }, [isPressed]);
   
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -115,8 +120,13 @@ function PixelMatrixBar() {
     };
 
     let time = 0;
+    let timeScale = 1.0;
     const render = () => {
-      time += 0.05;
+      // Smoothly ease the time scale towards target (0.05 for slow mo, 1.0 for normal)
+      const targetTimeScale = pressRef.current ? 0.05 : 1.0;
+      timeScale += (targetTimeScale - timeScale) * 0.1;
+      
+      time += 0.05 * timeScale;
       
       // Draw a translucent black background to create smooth motion trails (ghosting)
       ctx.globalCompositeOperation = 'source-over';
@@ -130,8 +140,8 @@ function PixelMatrixBar() {
         // Smooth sine wave organic movement
         p.vy = Math.sin((p.x * 0.03) + time + p.phase) * 0.8;
         
-        p.x += p.vx;
-        p.y += p.vy;
+        p.x += p.vx * timeScale;
+        p.y += p.vy * timeScale;
         
         // Wrap around seamlessly
         if (p.x > logicalW + 5) {
@@ -210,6 +220,7 @@ export default function App() {
   // --- SECURITY LATCH ---
   const latchX = useMotionValue(0);
   const pullOpacity = useTransform(latchX, [0, -40], [1, 0]);
+  const [isLatchActive, setIsLatchActive] = useState(false);
 
   const handleLatchDragEnd = (event, info) => {
     if (info.offset.x < -40) {
@@ -517,10 +528,14 @@ export default function App() {
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={{ left: 0.4, right: 0.05 }}
                 onDragEnd={handleLatchDragEnd}
+                onPointerDown={() => setIsLatchActive(true)}
+                onPointerUp={() => setIsLatchActive(false)}
+                onPointerLeave={() => setIsLatchActive(false)}
+                onPointerCancel={() => setIsLatchActive(false)}
                 whileTap={{ scale: 0.95 }}
                 className="h-5 w-24 md:w-32 border-2 border-black overflow-hidden relative z-[2] cursor-grab bg-white touch-pan-y"
               >
-                <PixelMatrixBar />
+                <PixelMatrixBar isPressed={isLatchActive} />
               </motion.div>
             </div>
           </div>
