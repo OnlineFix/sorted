@@ -10,9 +10,22 @@
     <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
     <meta name="description" content="SORTED™ — High-performance hardware repair. Broken in. Sorted out." />
     <title>SORTED™ — Hardware Repair</title>
+    <style>
+      #preloader { position: absolute; inset: 0; background: #000; display: flex; flex-direction: column; justify-content: flex-end; padding: 2rem; color: #fff; font-family: monospace; z-index: 9999; }
+      #preloader .top { font-size: 0.75rem; letter-spacing: 0.2em; color: #6b7280; text-transform: uppercase; margin-bottom: 1rem; border-bottom: 1px solid #1f2937; padding-bottom: 0.5rem; display: flex; justify-content: space-between; }
+      #preloader .big { font-size: 15vw; font-weight: 900; letter-spacing: -0.05em; line-height: 1; margin-bottom: 2rem; color: #fff; }
+    </style>
   </head>
-  <body>
-    <div id="app"></div>
+  <body style="background-color: #000; margin: 0; overflow: hidden;">
+    <div id="app">
+      <div id="preloader">
+        <div class="top">
+          <span>SYS_Boot // Telemetry_Link</span>
+          <span style="color: #3b82f6;">"AWAIT"</span>
+        </div>
+        <div class="big">0%</div>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
