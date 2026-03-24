@@ -217,16 +217,34 @@ function GlobalParticleSystem() {
     window.addEventListener('resize', resize);
     
     // Global hook for detonation
-    window.triggerParticleExplosion = (x, y) => {
-      // Spawn 300 physics particles
-      for (let i = 0; i < 300; i++) {
+    window.triggerParticleExplosion = (x, y, swipeVelocity = 0) => {
+      // Calculate swipe energy mapping (more velocity = more explosion)
+      // Swipe velocity usually ranges from -200 (slow) to -2000 (fast wipe)
+      const normalizedEnergy = Math.min(Math.max(Math.abs(swipeVelocity) / 500, 0.5), 3.0);
+      
+      // Spawn 150 physics particles per pull (reduced from 300 to fight lag)
+      for (let i = 0; i < 150; i++) {
+        // Enforce maximum particle cap to protect CPU/GPU (600 absolute max)
+        if (particles.length > 600) {
+          particles.shift(); // Remove oldest particle
+        }
+        
         const angle = Math.random() * Math.PI * 2;
-        const velocity = Math.random() * 12 + 4; // Explosion outward velocity
+        const velocity = (Math.random() * 10 + 4) * normalizedEnergy; 
+        
+        // Add horizontal velocity inherited from the swipe!
+        // The user pulls LEFT (negative velocity), but we want the particles 
+        // to blast out to the RIGHT out of the latch block
+        let vx = Math.cos(angle) * velocity;
+        if (swipeVelocity < 0) {
+          vx += (Math.abs(swipeVelocity) / 100) * (Math.random() * 0.5 + 0.5); // Boost rightward
+        }
+
         particles.push({
           x: x,
           y: y,
-          vx: Math.cos(angle) * velocity,
-          vy: Math.sin(angle) * velocity - 8, // Initial upward burst bias (like water spraying)
+          vx: vx,
+          vy: Math.sin(angle) * velocity - (8 * normalizedEnergy), // Upward burst bias
           size: Math.random() * 3 + 1.5,
           color: colors[Math.floor(Math.random() * colors.length)],
           life: 1.0,
@@ -468,7 +486,8 @@ export default function App() {
 
       if (window.triggerParticleExplosion && latchRef.current) {
         const rect = latchRef.current.getBoundingClientRect();
-        window.triggerParticleExplosion(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        // Pass the physical swipe velocity (info.velocity.x) 
+        window.triggerParticleExplosion(rect.left + rect.width / 2, rect.top + rect.height / 2, info.velocity.x);
       }
     }
   };
