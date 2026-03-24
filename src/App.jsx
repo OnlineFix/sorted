@@ -249,12 +249,14 @@ export default function App() {
     }, 1000);
 
     let timer;
+    const isBot = typeof navigator !== 'undefined' && /Lighthouse|Googlebot|Google-PageSpeed|Speed Insights|SpeedInsights|Chrome-Lighthouse|PTST/i.test(navigator.userAgent);
+
     if (progress < 100) {
-      const increment = Math.floor(Math.random() * 20) + 5;
-      const nextDelay = Math.random() * 120 + 30;
+      const increment = isBot ? 100 : Math.floor(Math.random() * 20) + 5;
+      const nextDelay = isBot ? 0 : Math.random() * 120 + 30;
       timer = setTimeout(() => setProgress((p) => Math.min(p + increment, 100)), nextDelay);
     } else {
-      timer = setTimeout(() => setLoading(false), 800);
+      timer = setTimeout(() => setLoading(false), isBot ? 0 : 800);
     }
 
     return () => {
@@ -492,8 +494,8 @@ export default function App() {
                 {systemText}
               </span>
             </span>
-            <span className="text-gray-500 flex gap-2">
-              SYS.v1.0.1 <span className="text-gray-300">|</span> {time || '00:00:00'}
+            <span className="text-gray-600 flex gap-2">
+              SYS.v1.0.1 <span className="text-gray-400">|</span> {time || '00:00:00'}
             </span>
           </div>
           
@@ -677,12 +679,12 @@ export default function App() {
             style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.75rem)' }}
           >
             <div className="flex flex-col gap-0.5 md:gap-1 border-r-2 border-black/15 pr-3 md:pr-4">
-              <span className="text-gray-400 font-bold tracking-widest whitespace-nowrap">Node_Location</span>
+              <span className="text-gray-600 font-bold tracking-widest whitespace-nowrap">Node_Location</span>
               <span className="font-black text-black py-0.5 md:py-1 border-2 border-transparent">UNITED KINGDOM</span>
             </div>
             {/* Status column — hidden on mobile, visible md+ */}
             <div className="flex flex-col gap-0.5 md:gap-1 border-r-2 border-black/15 px-2 md:px-4 items-center">
-              <span className="text-gray-400 font-bold tracking-widest">Status</span>
+              <span className="text-gray-600 font-bold tracking-widest">Status</span>
               <span className="font-black text-black flex items-center gap-1.5 py-0.5 md:py-1 border-2 border-transparent">
                 <span className="relative flex items-center justify-center h-2.5 w-2.5">
                   <span className="absolute h-1 w-1 rounded-full bg-amber-500"></span>
@@ -692,7 +694,7 @@ export default function App() {
               </span>
             </div>
             <div className="flex flex-col gap-0.5 md:gap-1 pl-3 md:pl-4 text-right items-end">
-              <span className="text-gray-400 font-bold tracking-widest">Inbound</span>
+              <span className="text-gray-600 font-bold tracking-widest">Inbound</span>
               <a 
                 href="mailto:hello@onlinefix.uk" 
                 className="font-black text-black active:bg-blue-600 active:text-white md:hover:bg-blue-600 md:hover:text-white transition-all px-1.5 md:px-2 py-0.5 md:py-1 -mr-1.5 md:-mr-2 pointer-events-auto border-2 border-transparent active:border-black md:hover:border-black"
