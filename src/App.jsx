@@ -796,8 +796,8 @@ export default function App() {
           <>
             <TelemetryReadout label="Signal_Str" value="▮▮▮▮▮▯ 94.2%" x="8%" y="28%" delay={0} />
             <TelemetryReadout label="Lat/Long" value="51.2362°N 0.5704°W" x="6%" y="65%" delay={0.2} />
-            <TelemetryReadout label="Node_Ping" value="< 12ms" x="85%" y="30%" delay={0.1} align="right" />
-            <TelemetryReadout label="Uptime" value="99.97% // 364d" x="82%" y="62%" delay={0.3} align="right" />
+            <TelemetryReadout label="Node_Ping" value="< 12ms" x="8%" y="30%" delay={0.1} align="right" />
+            <TelemetryReadout label="Uptime" value="99.97% // 364d" x="8%" y="62%" delay={0.3} align="right" />
 
             <CrosshairElement x="10%" y="42%" size={32} delay={0} />
             <CrosshairElement x="85%" y="48%" size={24} delay={0.2} />
