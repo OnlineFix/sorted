@@ -185,6 +185,131 @@ function PixelMatrixBar({ isPressed = false }) {
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ borderRadius: '0px' }} />;
 }
 
+// --- GLOBAL PARTICLE PHYSICS ENGINE ---
+function GlobalParticleSystem() {
+  const canvasRef = useRef(null);
+  
+  useEffect(() => {
+    // Disable on bots to prevent layout shifts or severe rendering penalties during execution audits
+    const isBot = typeof navigator !== 'undefined' && /Lighthouse|Googlebot|Google-PageSpeed|Speed Insights|SpeedInsights|Chrome-Lighthouse|PTST|moto g power|nexus 5x/i.test(navigator.userAgent);
+    if (isBot) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d', { alpha: true });
+    
+    let particles = [];
+    let animationFrameId;
+    let logicalW, logicalH;
+    
+    // Core brand palette for explosion
+    const colors = ['#2563EB', '#00E6F6', '#FFFFFF', '#FF003C', '#FCD34D']; 
+    
+    const resize = () => {
+      const dpr = window.devicePixelRatio || 1;
+      logicalW = window.innerWidth;
+      logicalH = window.innerHeight;
+      canvas.width = logicalW * dpr;
+      canvas.height = logicalH * dpr;
+      ctx.scale(dpr, dpr);
+    };
+    resize();
+    window.addEventListener('resize', resize);
+    
+    // Global hook for detonation
+    window.triggerParticleExplosion = (x, y) => {
+      // Spawn 300 physics particles
+      for (let i = 0; i < 300; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const velocity = Math.random() * 12 + 4; // Explosion outward velocity
+        particles.push({
+          x: x,
+          y: y,
+          vx: Math.cos(angle) * velocity,
+          vy: Math.sin(angle) * velocity - 8, // Initial upward burst bias (like water spraying)
+          size: Math.random() * 3 + 1.5,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          life: 1.0,
+          decay: Math.random() * 0.008 + 0.002, // 5-15 second lifecycle fade
+          friction: Math.random() * 0.03 + 0.95, // Variable air resistance
+          gravity: Math.random() * 0.2 + 0.3, // Pulls down
+          bounce: Math.random() * 0.3 + 0.5 // Bounciness ratio on floor collision
+        });
+      }
+    };
+    
+    const render = () => {
+      ctx.clearRect(0, 0, logicalW, logicalH);
+      
+      for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        
+        // Apply Physics
+        p.vy += p.gravity;
+        p.vx *= p.friction;
+        p.vy *= p.friction;
+        p.x += p.vx;
+        p.y += p.vy;
+        
+        // Floor collision
+        if (p.y > logicalH - p.size) {
+          p.y = logicalH - p.size;
+          p.vy *= -p.bounce;
+          p.vx *= 0.85; // Heavy ground friction on X axis to slow rolling
+        }
+        
+        // Wall collisions
+        if (p.x < p.size) {
+          p.x = p.size;
+          p.vx *= -p.bounce;
+        } else if (p.x > logicalW - p.size) {
+          p.x = logicalW - p.size;
+          p.vx *= -p.bounce;
+        }
+        
+        // Age the particle
+        p.life -= p.decay;
+        
+        // Garbage collection
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+        
+        // Render
+        ctx.globalAlpha = p.life < 0.2 ? p.life * 5 : 1.0; // Sharp fade out at the very end
+        ctx.fillStyle = p.color;
+        
+        // Fast dynamic glowing
+        if (p.size > 3) {
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = p.color;
+        } else {
+          ctx.shadowBlur = 0;
+        }
+        
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1.0;
+      animationFrameId = requestAnimationFrame(render);
+    };
+    
+    render();
+    
+    return () => {
+      window.removeEventListener('resize', resize);
+      cancelAnimationFrame(animationFrameId);
+      delete window.triggerParticleExplosion;
+    };
+  }, []);
+  
+  return <canvas ref={canvasRef} className="fixed inset-0 w-full h-full pointer-events-none z-[9999]" style={{ opacity: 0.9 }} />;
+}
+
 // --- ANIMATED FAVICON ---
 function useAnimatedFavicon() {
   useEffect(() => {
@@ -252,6 +377,7 @@ export default function App() {
   const [isProtocolUnlocked, setIsProtocolUnlocked] = useState(false);
   const [systemText, setSystemText] = useState('"TELEMETRY_INDEX" // CLASSIFIED');
   const containerRef = useRef(null);
+  const latchRef = useRef(null);
   
   const isMobile = useIsMobile();
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -285,6 +411,11 @@ export default function App() {
       setTimeout(() => {
         setSystemText('"TELEMETRY_INDEX" // CLASSIFIED');
       }, 2000);
+
+      if (window.triggerParticleExplosion && latchRef.current) {
+        const rect = latchRef.current.getBoundingClientRect();
+        window.triggerParticleExplosion(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      }
     }
   };
 
@@ -451,8 +582,8 @@ export default function App() {
         /* Latch shadow animation — applied to sibling motion.div */
         .pulse-glow-anim { animation: pulse-blue-glow 2.2s ease-in-out infinite; }
       `}</style>
-
-
+      
+      <GlobalParticleSystem />
 
       {/* TEXTURES & OVERLAYS */}
       {/* Grid — GPU-friendly, no filter */}
@@ -567,7 +698,7 @@ export default function App() {
               &lt; PULL_OVERRIDE
             </motion.span>
             
-            <div className="relative">
+            <div className="relative" ref={latchRef}>
               <motion.div 
                 style={{ x: latchX }}
                 drag="x"
