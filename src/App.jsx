@@ -214,19 +214,23 @@ function useAnimatedFavicon() {
       // Draw moving stripes
       ctx.fillStyle = '#FFFFFF';
       ctx.save();
-      // Rotate for diagonal stripes
+      
+      // Translate horizontally to match the rightward-sliding DOM hazard stripes
+      ctx.translate(offset, 0);
+
+      // Rotate for diagonal stripes (-45deg matches CSS)
       ctx.translate(16, 16);
       ctx.rotate(-Math.PI / 4);
       ctx.translate(-32, -32);
       
-      // 16px stride: 8px white stripe, 8px black gap
-      for (let x = -32; x < 64; x += 16) {
-        ctx.fillRect(x + offset, -32, 8, 128);
+      // 16px perpendicular stride: 8px white stripe, 8px black gap
+      for (let x = -64; x < 64; x += 16) {
+        ctx.fillRect(x, -64, 8, 128);
       }
       ctx.restore();
       
-      // Move stripe 2 pixels per frame
-      offset = (offset + 2) % 16;
+      // Horizontal repeat distance for a 16px perpendicular stride at 45 degrees is 16 * sqrt(2) = ~22.627
+      offset = (offset + 1.5) % 22.627;
       
       link.href = canvas.toDataURL('image/png');
     };
