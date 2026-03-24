@@ -110,7 +110,7 @@ function PixelMatrixBar({ isPressed = false }) {
         particles.push({
           x: Math.random() * logicalW,
           y: Math.random() * logicalH,
-          vx: Math.random() * 2 + 1.5, // Force moving right
+          vx: -(Math.random() * 2 + 1.5), // Force moving left
           vy: 0,
           size: Math.random() * 1.5 + 0.5,
           color: colors[Math.floor(Math.random() * colors.length)],
@@ -143,9 +143,9 @@ function PixelMatrixBar({ isPressed = false }) {
         p.x += p.vx * timeScale;
         p.y += p.vy * timeScale;
         
-        // Wrap around seamlessly
-        if (p.x > logicalW + 5) {
-          p.x = -5;
+        // Wrap around seamlessly on the left edge
+        if (p.x < -5) {
+          p.x = logicalW + 5;
           p.y = Math.random() * logicalH;
         }
         
