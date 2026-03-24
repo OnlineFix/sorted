@@ -244,6 +244,26 @@ function GlobalParticleSystem() {
       for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i];
         
+        // --- PHASE 3: MAGNETIC REPULSION FIELD ---
+        if (window.pointerPosition && window.pointerPosition.active) {
+          const dx = p.x - window.pointerPosition.x;
+          const dy = p.y - window.pointerPosition.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          const repulsionRadius = 150; // The size of our invisible plow
+          
+          if (distance < repulsionRadius) {
+            // Calculate repulsion force (closer = much stronger)
+            const force = (repulsionRadius - distance) / repulsionRadius;
+            const angle = Math.atan2(dy, dx);
+            
+            // Apply violent velocity vector away from the pointer
+            const blastStrength = 3.0;
+            p.vx += Math.cos(angle) * force * blastStrength;
+            p.vy += Math.sin(angle) * force * blastStrength;
+          }
+        }
+
         // Apply Physics
         p.vy += p.gravity;
         p.vx *= p.friction;
@@ -300,10 +320,38 @@ function GlobalParticleSystem() {
     
     render();
     
+    // Global pointer tracking for repulsion
+    window.pointerPosition = { x: -1000, y: -1000, active: false };
+    const handlePointerMove = (e) => {
+      // Handle both mouse and touch events
+      const clientX = e.touches && e.touches.length > 0 ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches && e.touches.length > 0 ? e.touches[0].clientY : e.clientY;
+      if (clientX !== undefined) {
+        window.pointerPosition.x = clientX;
+        window.pointerPosition.y = clientY;
+      }
+    };
+    const handlePointerDown = () => window.pointerPosition.active = true;
+    const handlePointerUp = () => window.pointerPosition.active = false;
+    
+    window.addEventListener('mousemove', handlePointerMove);
+    window.addEventListener('touchmove', handlePointerMove, { passive: true });
+    window.addEventListener('mousedown', handlePointerDown);
+    window.addEventListener('touchstart', handlePointerDown, { passive: true });
+    window.addEventListener('mouseup', handlePointerUp);
+    window.addEventListener('touchend', handlePointerUp);
+    
     return () => {
       window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', handlePointerMove);
+      window.removeEventListener('touchmove', handlePointerMove);
+      window.removeEventListener('mousedown', handlePointerDown);
+      window.removeEventListener('touchstart', handlePointerDown);
+      window.removeEventListener('mouseup', handlePointerUp);
+      window.removeEventListener('touchend', handlePointerUp);
       cancelAnimationFrame(animationFrameId);
       delete window.triggerParticleExplosion;
+      delete window.pointerPosition;
     };
   }, []);
   
