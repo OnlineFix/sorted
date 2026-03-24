@@ -36,7 +36,7 @@ function TelemetryReadout({ label, value, x, y, delay = 0, align = 'left' }) {
       className={`absolute font-mono text-[10px] uppercase tracking-widest pointer-events-none select-none z-20 hidden md:block ${align === 'right' ? 'text-right' : 'text-left'}`}
       style={{ left: align === 'left' ? x : 'auto', right: align === 'right' ? x : 'auto', top: y }}
     >
-      <span className="text-gray-400 block">{label}</span>
+      <span className="text-gray-500 block">{label}</span>
       <span className="text-black/60 font-bold block">{value}</span>
     </motion.div>
   );
@@ -503,7 +503,7 @@ export default function App() {
           <div className="flex items-center gap-3 pointer-events-auto">
             <motion.span 
               style={{ opacity: pullOpacity }}
-              className="font-mono text-[10px] text-gray-400 font-bold uppercase tracking-widest hidden md:block select-none"
+              className="font-mono text-[10px] text-gray-500 font-bold uppercase tracking-widest hidden md:block select-none"
             >
               &lt; PULL_OVERRIDE
             </motion.span>
@@ -655,6 +655,7 @@ export default function App() {
                 >
                   <button 
                     onClick={() => setManifestoOpen(!manifestoOpen)}
+                    aria-label="Toggle manifesto protocol"
                     className="font-mono text-[10px] md:text-xs font-black uppercase tracking-widest bg-black text-white px-3 md:px-4 py-2.5 md:py-3 flex items-center gap-2 hover:bg-blue-600 hover:text-white transition-colors border-4 border-black relative z-[2] active:translate-x-[2px] active:translate-y-[2px]"
                     style={{ WebkitTapHighlightColor: 'transparent' }}
                   >
