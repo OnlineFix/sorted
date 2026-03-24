@@ -218,9 +218,9 @@ function useAnimatedFavicon() {
       // Translate horizontally to match the rightward-sliding DOM hazard stripes
       ctx.translate(offset, 0);
 
-      // Rotate for diagonal stripes (-45deg matches CSS)
+      // Rotate for diagonal stripes (Math.PI / 4 matches CSS -45deg gradient line normals)
       ctx.translate(16, 16);
-      ctx.rotate(-Math.PI / 4);
+      ctx.rotate(Math.PI / 4);
       ctx.translate(-32, -32);
       
       // 16px perpendicular stride: 8px white stripe, 8px black gap
@@ -229,8 +229,9 @@ function useAnimatedFavicon() {
       }
       ctx.restore();
       
-      // Horizontal repeat distance for a 16px perpendicular stride at 45 degrees is 16 * sqrt(2) = ~22.627
-      offset = (offset + 1.5) % 22.627;
+      // Speed alignment: DOM animates 28.28px over 0.8s (35.35px per sec)
+      // At 10 FPS (100ms), we move exactly 3.535px per frame to perfectly lock speeds.
+      offset = (offset + 3.535) % 22.627;
       
       link.href = canvas.toDataURL('image/png');
     };
