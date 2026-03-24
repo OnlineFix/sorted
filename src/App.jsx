@@ -230,10 +230,11 @@ function GlobalParticleSystem() {
           size: Math.random() * 3 + 1.5,
           color: colors[Math.floor(Math.random() * colors.length)],
           life: 1.0,
-          decay: Math.random() * 0.008 + 0.002, // 5-15 second lifecycle fade
-          friction: Math.random() * 0.03 + 0.95, // Variable air resistance
-          gravity: Math.random() * 0.2 + 0.3, // Pulls down
-          bounce: Math.random() * 0.3 + 0.5 // Bounciness ratio on floor collision
+          decay: Math.random() * 0.002 + 0.0005, // 15 to 60 second lifecycle (much longer)
+          friction: Math.random() * 0.02 + 0.96, // Slipperier air resistance
+          gravity: Math.random() * 0.15 + 0.15, // Lighter, floatier gravity
+          bounce: Math.random() * 0.3 + 0.5, // Bounciness ratio
+          floorOffset: Math.random() * 150 // Artificial variable floor so they pile up!
         });
       }
     };
@@ -271,9 +272,10 @@ function GlobalParticleSystem() {
         p.x += p.vx;
         p.y += p.vy;
         
-        // Floor collision
-        if (p.y > logicalH - p.size) {
-          p.y = logicalH - p.size;
+        // Floor collision (incorporating the variable offset to simulate a 3D pile)
+        const floorY = logicalH - p.size - p.floorOffset;
+        if (p.y > floorY) {
+          p.y = floorY;
           p.vy *= -p.bounce;
           p.vx *= 0.85; // Heavy ground friction on X axis to slow rolling
         }
@@ -453,9 +455,13 @@ export default function App() {
 
   const handleLatchDragEnd = (event, info) => {
     if (info.offset.x < -40) {
-      setManifestoOpen((prev) => !prev);
-      setIsProtocolUnlocked(true);
-      setSystemText('!!! OVERRIDE_GRANTED !!!');
+      // Only toggle the manifesto if it's the VERY FIRST time they unlock it
+      if (!isProtocolUnlocked) {
+        setManifestoOpen(true);
+        setIsProtocolUnlocked(true);
+      }
+      
+      setSystemText('!!! EXPLODING_PAYLOAD !!!');
       setTimeout(() => {
         setSystemText('"TELEMETRY_INDEX" // CLASSIFIED');
       }, 2000);
