@@ -185,7 +185,61 @@ function PixelMatrixBar({ isPressed = false }) {
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ borderRadius: '0px' }} />;
 }
 
+// --- ANIMATED FAVICON ---
+function useAnimatedFavicon() {
+  useEffect(() => {
+    // Disable on bots to prevent performance penalties
+    const isBot = typeof navigator !== 'undefined' && /Lighthouse|Googlebot|Google-PageSpeed|Speed Insights|SpeedInsights|Chrome-Lighthouse|PTST|moto g power|nexus 5x/i.test(navigator.userAgent);
+    if (isBot) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 32;
+    canvas.height = 32;
+    const ctx = canvas.getContext('2d');
+    
+    let link = document.querySelector("link[rel~='icon']");
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.type = 'image/png';
+    
+    let offset = 0;
+    const animateFavicon = () => {
+      // Draw background
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, 32, 32);
+      
+      // Draw moving stripes
+      ctx.fillStyle = '#FFFFFF';
+      ctx.save();
+      // Rotate for diagonal stripes
+      ctx.translate(16, 16);
+      ctx.rotate(-Math.PI / 4);
+      ctx.translate(-32, -32);
+      
+      // 16px stride: 8px white stripe, 8px black gap
+      for (let x = -32; x < 64; x += 16) {
+        ctx.fillRect(x + offset, -32, 8, 128);
+      }
+      ctx.restore();
+      
+      // Move stripe 2 pixels per frame
+      offset = (offset + 2) % 16;
+      
+      link.href = canvas.toDataURL('image/png');
+    };
+    
+    // ~10 FPS is smooth for a favicon without burning browser CPU
+    const faviconInterval = setInterval(animateFavicon, 100);
+    return () => clearInterval(faviconInterval);
+  }, []);
+}
+
 export default function App() {
+  useAnimatedFavicon();
+
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
   const [time, setTime] = useState('');
