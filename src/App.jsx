@@ -653,7 +653,9 @@ export default function App() {
   const [isLatchActive, setIsLatchActive] = useState(false);
 
   const handleLatchDragEnd = (event, info) => {
-    if (info.offset.x < -40) {
+    // Increase threshold for wider desktop bar
+    const threshold = isMobile ? -40 : -60;
+    if (info.offset.x < threshold) {
       // Only toggle the manifesto if it's the VERY FIRST time they unlock it
       if (!isProtocolUnlocked) {
         setManifestoOpen(true);
@@ -966,7 +968,7 @@ export default function App() {
                 onPointerLeave={() => setIsLatchActive(false)}
                 onPointerCancel={() => setIsLatchActive(false)}
                 whileTap={{ scale: 0.95 }}
-                className="h-5 md:h-10 w-24 md:w-40 border-2 md:border-4 border-black overflow-hidden relative z-[2] cursor-grab bg-white touch-pan-y transition-all"
+                className="h-5 md:h-[42px] w-24 md:w-44 border-2 md:border-4 border-black overflow-hidden relative z-[2] cursor-grab bg-white touch-pan-y"
               >
                 <PixelMatrixBar isPressed={isLatchActive} />
               </motion.div>
