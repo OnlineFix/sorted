@@ -966,7 +966,7 @@ export default function App() {
                 onPointerLeave={() => setIsLatchActive(false)}
                 onPointerCancel={() => setIsLatchActive(false)}
                 whileTap={{ scale: 0.95 }}
-                className="h-5 w-24 md:w-32 border-2 border-black overflow-hidden relative z-[2] cursor-grab bg-white touch-pan-y"
+                className="h-5 md:h-10 w-24 md:w-40 border-2 md:border-4 border-black overflow-hidden relative z-[2] cursor-grab bg-white touch-pan-y transition-all"
               >
                 <PixelMatrixBar isPressed={isLatchActive} />
               </motion.div>
