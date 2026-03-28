@@ -409,99 +409,137 @@ function GlobalParticleSystem() {
         }
         
         const angle = Math.random() * Math.PI * 2;
-        const velocity = (Math.random() * 10 + 4) * normalizedEnergy; 
+        const velocity = (Math.random() * 12 + 6) * normalizedEnergy; 
         
-        // Add horizontal velocity inherited from the swipe!
-        // The user pulls LEFT (negative velocity), but we want the particles 
-        // to blast out to the RIGHT out of the latch block
         let vx = Math.cos(angle) * velocity;
         if (swipeVelocity < 0) {
-          vx += (Math.abs(swipeVelocity) / 100) * (Math.random() * 0.5 + 0.5); // Boost rightward
+          vx += (Math.abs(swipeVelocity) / 80) * (Math.random() * 0.5 + 0.5); 
         }
 
         particles.push({
           x: x,
           y: y,
           vx: vx,
-          vy: Math.sin(angle) * velocity - (10 * normalizedEnergy), // Violent upward burst 
-          size: Math.random() * 6 + 2.5, // Larger "balls" 
+          vy: Math.sin(angle) * velocity - (12 * normalizedEnergy),
+          size: Math.random() * 5 + 3, 
           color: colors[Math.floor(Math.random() * colors.length)],
           life: 1.0,
-          decay: Math.random() * 0.001 + 0.0002, // 30s to 1.5min lifecycle (even longer)
-          friction: Math.random() * 0.02 + 0.97, // Slipperier
-          gravity: Math.random() * 0.15 + 0.2, // Heavier feel
-          bounce: Math.random() * 0.3 + 0.4, // Bounciness ratio
-          floorOffset: Math.random() * (logicalH * 0.7) // Can pile up to 70% of screen!
+          decay: 0.0001, // Near infinite life to allow "filling" 
+          friction: 0.98, 
+          gravity: 0.35, 
+          bounce: 0.3,
+          isSettled: false
         });
       }
     };
+
+    // Calculate UI "Solid Zones" for collision
+    const getSolidZones = () => {
+      const zones = [];
+      const selectors = ['header', 'footer', '.manifesto-box', '.pulse-shadow-wrap'];
+      selectors.forEach(s => {
+        document.querySelectorAll(s).forEach(el => {
+          const r = el.getBoundingClientRect();
+          if (r.width > 0 && r.height > 0) {
+            zones.push({ left: r.left, right: r.right, top: r.top, bottom: r.bottom });
+          }
+        });
+      });
+      return zones;
+    };
+    
+    // Dynamic Height Map for "Water Filling" (1px resolution across screen width)
+    const heightMap = new Float32Array(Math.ceil(window.innerWidth)).fill(0);
     
     const render = () => {
       ctx.clearRect(0, 0, logicalW, logicalH);
+      const zones = getSolidZones();
       
       for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i];
         
-        // --- PHASE 3: MAGNETIC REPULSION FIELD ---
+        if (!p.isSettled) {
+          // Physics
+          p.vy += p.gravity;
+          p.vx *= p.friction;
+          p.vy *= p.friction;
+          p.x += p.vx;
+          p.y += p.vy;
+
+          // --- UI COLLISION (Bouncing off boxes) ---
+          zones.forEach(z => {
+            if (p.x > z.left && p.x < z.right && p.y > z.top && p.y < z.bottom) {
+              // Simple side/top/bottom bounce
+              const distTop = Math.abs(p.y - z.top);
+              const distBottom = Math.abs(p.y - z.bottom);
+              const distLeft = Math.abs(p.x - z.left);
+              const distRight = Math.abs(p.x - z.right);
+              const minDist = Math.min(distTop, distBottom, distLeft, distRight);
+              
+              if (minDist === distTop) { p.y = z.top - p.size; p.vy *= -p.bounce; }
+              else if (minDist === distBottom) { p.y = z.bottom + p.size; p.vy *= -p.bounce; }
+              else if (minDist === distLeft) { p.x = z.left - p.size; p.vx *= -p.bounce; }
+              else if (minDist === distRight) { p.x = z.right + p.size; p.vx *= -p.bounce; }
+            }
+          });
+
+          // Screen Bound collisions
+          if (p.x < p.size) { p.x = p.size; p.vx *= -p.bounce; }
+          if (p.x > logicalW - p.size) { p.x = logicalW - p.size; p.vx *= -p.bounce; }
+
+          // --- REFINED PILE COLLISION (Height Map) ---
+          const screenX = Math.floor(Math.max(0, Math.min(logicalW - 1, p.x)));
+          const currentFloor = logicalH - (heightMap[screenX] || 0);
+
+          if (p.y > currentFloor - p.size) {
+            if (Math.abs(p.vy) < 1.5 && Math.abs(p.vx) < 1.5) {
+              // Settle into the "liquid" pile
+              p.isSettled = true;
+              p.y = currentFloor - p.size/2;
+              // Add to height map (approximate volume)
+              const spread = Math.ceil(p.size);
+              for (let sx = screenX - spread; sx <= screenX + spread; sx++) {
+                if (sx >= 0 && sx < logicalW) {
+                  const dist = Math.abs(sx - screenX);
+                  const add = Math.max(0, p.size * 1.5 * (1 - dist / spread));
+                  heightMap[sx] += add;
+                }
+              }
+            } else {
+              p.y = currentFloor - p.size;
+              p.vy *= -p.bounce;
+              p.vx *= 0.8; // Friction
+            }
+          }
+        }
+
+        // --- FLUID LEVELING (Settled particles move to lowest point) ---
+        if (p.isSettled) {
+          const screenX = Math.floor(p.x);
+          const leftH = heightMap[screenX - 2] || 0;
+          const rightH = heightMap[screenX + 2] || 0;
+          if (leftH < heightMap[screenX] - 2) p.x -= 1;
+          else if (rightH < heightMap[screenX] - 2) p.x += 1;
+        }
+
+        // Pointer Repulsion (Active for all)
         if (window.pointerPosition && window.pointerPosition.active) {
           const dx = p.x - window.pointerPosition.x;
           const dy = p.y - window.pointerPosition.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
-          
-          const repulsionRadius = 150; // The size of our invisible plow
-          
-          if (distance < repulsionRadius) {
-            // Calculate repulsion force (closer = much stronger)
-            const force = (repulsionRadius - distance) / repulsionRadius;
+          if (distance < 150) {
+            p.isSettled = false; // "Stir" the water 
+            const force = (150 - distance) / 150;
             const angle = Math.atan2(dy, dx);
-            
-            // Apply violent velocity vector away from the pointer
-            const blastStrength = 3.0;
-            p.vx += Math.cos(angle) * force * blastStrength;
-            p.vy += Math.sin(angle) * force * blastStrength;
+            p.vx += Math.cos(angle) * force * 5;
+            p.vy += Math.sin(angle) * force * 5;
           }
         }
 
-        // Apply Physics
-        p.vy += p.gravity;
-        p.vx *= p.friction;
-        p.vy *= p.friction;
-        p.x += p.vx;
-        p.y += p.vy;
-        
-        // Floor collision (incorporating the variable offset to simulate a 3D pile)
-        const floorY = logicalH - p.size - p.floorOffset;
-        if (p.y > floorY) {
-          p.y = floorY;
-          p.vy *= -p.bounce;
-          p.vx *= 0.85; // Heavy ground friction on X axis to slow rolling
-        }
-        
-        // Wall collisions
-        if (p.x < p.size) {
-          p.x = p.size;
-          p.vx *= -p.bounce;
-        } else if (p.x > logicalW - p.size) {
-          p.x = logicalW - p.size;
-          p.vx *= -p.bounce;
-        }
-        
-        // Age the particle
-        p.life -= p.decay;
-        
-        // Garbage collection
-        if (p.life <= 0) {
-          particles.splice(i, 1);
-          continue;
-        }
-        
         // Render
-        ctx.globalAlpha = p.life < 0.2 ? p.life * 5 : 1.0; 
         ctx.fillStyle = p.color;
-        
-        // Performance Guard: Only use shadows if count is low and not on low-tier
-        if (p.size > 5 && !isLowTier && particles.length < 800) {
-          ctx.shadowBlur = 10;
+        if (p.size > 6 && !isLowTier && particles.length < 1000) {
+          ctx.shadowBlur = 8;
           ctx.shadowColor = p.color;
         } else {
           ctx.shadowBlur = 0;
@@ -510,10 +548,13 @@ function GlobalParticleSystem() {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
+        
+        // Age/Delete only if absolutely necessary
+        p.life -= p.decay;
+        if (p.life <= 0) particles.splice(i, 1);
       }
       
       ctx.shadowBlur = 0;
-      ctx.globalAlpha = 1.0;
       animationFrameId = requestAnimationFrame(render);
     };
     
@@ -1078,7 +1119,7 @@ export default function App() {
                     <span className="font-bold tracking-widest uppercase truncate pr-4 text-[9px] md:text-xs">SYS_Protocol // "MANIFESTO"</span>
                     <span className="text-blue-500 animate-pulse flex items-center gap-1.5 md:gap-2 shrink-0 text-[9px] md:text-xs"><Radio size={10}/> LIVE</span>
                   </div>
-                  <div className="p-3 md:p-6 space-y-3 md:space-y-4 text-gray-400 leading-relaxed max-h-[45vh] md:max-h-[50vh] overflow-y-auto ios-scroll">
+                  <div className="p-3 md:p-6 space-y-3 md:space-y-4 text-gray-400 leading-relaxed max-h-[45vh] md:max-h-[50vh] overflow-y-auto ios-scroll manifesto-box" id="manifesto-protocol-window">
                     <p>Modern consoles are highly engineered machines. <span className="text-white font-black block mt-1">The industry that fixes them is a mess.</span></p>
                     <p>Traditional repair shops hide behind cluttered high-street counters. They use cheap parts to cover expensive rent, and they treat the repair process like a secret. We reject that model.</p>
                     <p className="font-black text-blue-500 text-sm md:text-base uppercase underline decoration-2 underline-offset-4">"SORTED REPAIR" is a structural shift.</p>
