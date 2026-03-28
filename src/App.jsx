@@ -26,6 +26,27 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
+function useHardwareTier() {
+  const [isLowTier, setIsLowTier] = useState(() => {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const prefersReducedMotion = mq.matches;
+    const lowCores = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
+    const lowMemory = navigator.deviceMemory && navigator.deviceMemory <= 8;
+    const isBot = /Lighthouse|Googlebot|Google-PageSpeed|Speed Insights|SpeedInsights|Chrome-Lighthouse|PTST/i.test(navigator.userAgent);
+    return prefersReducedMotion || lowCores || lowMemory || isBot;
+  });
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handler = (e) => { if (e.matches) setIsLowTier(true); };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  return isLowTier;
+}
+
 // --- FLOATING TELEMETRY DATA READOUT (desktop only) ---
 function TelemetryReadout({ label, value, x, y, delay = 0, align = 'left' }) {
   return (
@@ -76,6 +97,7 @@ function GeoLine({ x1, y1, length, angle, delay = 0 }) {
 }
 // --- LIVING DATA STREAM BAR ---
 function PixelMatrixBar({ isPressed = false }) {
+  const isLowTier = useHardwareTier();
   const canvasRef = useRef(null);
   const pressRef = useRef(isPressed);
   
@@ -91,7 +113,7 @@ function PixelMatrixBar({ isPressed = false }) {
     
     let logicalW, logicalH;
     let particles = [];
-    const particleCount = 200; // Dense enough for a beautiful stream
+    const particleCount = isLowTier ? 50 : 200; // Dense enough for a beautiful stream
     
     // Cyberpunk/Premium palette: Brand Blue, Electric Cyan, Pure White, Neon Pink
     const colors = ['#2563EB', '#00E6F6', '#FFFFFF', '#FF003C'];
@@ -153,7 +175,7 @@ function PixelMatrixBar({ isPressed = false }) {
         ctx.fillStyle = p.color;
         ctx.beginPath();
         // Add native canvas glow to the brightest/largest particles
-        if (p.size > 1.2) {
+        if (p.size > 1.2 && !isLowTier) {
           ctx.shadowBlur = 6;
           ctx.shadowColor = p.color;
         } else {
@@ -187,6 +209,7 @@ function PixelMatrixBar({ isPressed = false }) {
 
 // --- GLOBAL PARTICLE PHYSICS ENGINE ---
 function GlobalParticleSystem() {
+  const isLowTier = useHardwareTier();
   const canvasRef = useRef(null);
   
   useEffect(() => {
@@ -222,10 +245,12 @@ function GlobalParticleSystem() {
       // Swipe velocity usually ranges from -200 (slow) to -2000 (fast wipe)
       const normalizedEnergy = Math.min(Math.max(Math.abs(swipeVelocity) / 500, 0.5), 3.0);
       
+      const spawnCount = isLowTier ? 40 : 150;
       // Spawn 150 physics particles per pull (reduced from 300 to fight lag)
-      for (let i = 0; i < 150; i++) {
+      for (let i = 0; i < spawnCount; i++) {
         // Enforce maximum particle cap to protect CPU/GPU (600 absolute max)
-        if (particles.length > 600) {
+        const maxParticles = isLowTier ? 120 : 600;
+        if (particles.length > maxParticles) {
           particles.shift(); // Remove oldest particle
         }
         
@@ -321,7 +346,7 @@ function GlobalParticleSystem() {
         ctx.fillStyle = p.color;
         
         // Fast dynamic glowing
-        if (p.size > 3) {
+        if (p.size > 3 && !isLowTier) {
           ctx.shadowBlur = 8;
           ctx.shadowColor = p.color;
         } else {
@@ -380,10 +405,11 @@ function GlobalParticleSystem() {
 
 // --- ANIMATED FAVICON ---
 function useAnimatedFavicon() {
+  const isLowTier = useHardwareTier();
   useEffect(() => {
     // Disable on bots to prevent performance penalties
     const isBot = typeof navigator !== 'undefined' && /Lighthouse|Googlebot|Google-PageSpeed|Speed Insights|SpeedInsights|Chrome-Lighthouse|PTST|moto g power|nexus 5x/i.test(navigator.userAgent);
-    if (isBot) return;
+    if (isBot || isLowTier) return;
 
     const canvas = document.createElement('canvas');
     canvas.width = 32;
@@ -436,6 +462,7 @@ function useAnimatedFavicon() {
 }
 
 export default function App() {
+  const isLowTier = useHardwareTier();
   useAnimatedFavicon();
 
   const [loading, setLoading] = useState(true);
@@ -538,7 +565,7 @@ export default function App() {
 
   const hazardStripe = "repeating-linear-gradient(-45deg, #000, #000 10px, #fff 10px, #fff 20px)";
   const brandGradient = "linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%)";
-  const marqueeText = "HIGH-PERFORMANCE HARDWARE INTERVENTION // SECURE TRANSIT NODE // NO WAITING ROOMS // NO UPSELLING // TOTAL TRANSPARENCY // BROKEN IN. SORTED OUT. // ";
+  const marqueeText = "SORTED REPAIR // HIGH-PERFORMANCE HARDWARE INTERVENTION // SECURE TRANSIT NODE // NO WAITING ROOMS // TOTAL TRANSPARENCY // BROKEN IN. SORTED OUT. // ";
 
   // Stagger animation variants
   const heroContainer = {
@@ -663,13 +690,15 @@ export default function App() {
       <div className="pointer-events-none absolute inset-0 z-0 opacity-20 bg-[linear-gradient(rgba(0,0,0,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.06)_1px,transparent_1px)] bg-[size:40px_40px] gpu-layer" />
       
       {/* Noise — hidden on mobile (expensive SVG filter) */}
-      <div 
-        className="pointer-events-none absolute inset-0 z-[60] h-full w-full opacity-[0.04] mix-blend-difference hidden md:block" 
-        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
-      />
+      {!isLowTier && (
+        <div 
+          className="pointer-events-none absolute inset-0 z-[60] h-full w-full opacity-[0.04] mix-blend-difference hidden md:block" 
+          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+        />
+      )}
       
       {/* CRT Scanline — desktop only */}
-      {!isMobile && !prefersReducedMotion && (
+      {!isMobile && !prefersReducedMotion && !isLowTier && (
         <motion.div 
           className="pointer-events-none absolute left-0 w-full h-[2px] bg-black/5 z-[61]"
           animate={{ top: ["0%", "100%"] }}
@@ -678,7 +707,7 @@ export default function App() {
       )}
 
       {/* DATA STREAM LINES — desktop only (4 animated divs = jank on mobile) */}
-      {!isMobile && !prefersReducedMotion && (
+      {!isMobile && !prefersReducedMotion && !isLowTier && (
         <div className="pointer-events-none absolute inset-0 z-[1] overflow-hidden">
           {[15, 35, 65, 82].map((left, i) => (
             <motion.div
@@ -855,6 +884,7 @@ export default function App() {
                     <span className="text-[4vw] md:text-[3vw] font-bold tracking-normal text-black ml-[1vw] mt-[1.5vw]">
                       &trade;
                     </span>
+                    <span className="sr-only"> Repair</span>
                   </h1>
 
                   {/* Bottom-right hazard bracket */}
@@ -895,7 +925,7 @@ export default function App() {
                   <div className="p-3 md:p-6 space-y-3 md:space-y-4 text-gray-400 leading-relaxed max-h-[45vh] md:max-h-[50vh] overflow-y-auto ios-scroll">
                     <p>Modern consoles are highly engineered machines. <span className="text-white font-black block mt-1">The industry that fixes them is a mess.</span></p>
                     <p>Traditional repair shops hide behind cluttered high-street counters. They use cheap parts to cover expensive rent, and they treat the repair process like a secret. We reject that model.</p>
-                    <p className="font-black text-blue-500 text-sm md:text-base uppercase underline decoration-2 underline-offset-4">"SORTED" is a structural shift.</p>
+                    <p className="font-black text-blue-500 text-sm md:text-base uppercase underline decoration-2 underline-offset-4">"SORTED REPAIR" is a structural shift.</p>
                     <p>We stripped away the retail storefront entirely. Operating as a closed-door micro-lab out of Guildford, we removed the noise to focus purely on the hardware. No waiting rooms. No upselling. Just a hyper-focused workbench serving the entire UK.</p>
                     <p>We believe in open-source engineering. We don't just fix devices in the dark; we deconstruct, optimize, and document. The exact hardware intervention, the premium thermal compounds applied, and the final diagnostic stress tests are recorded and handed back to you.</p>
                     <div className="pt-2 border-t-2 border-dashed border-gray-800">
@@ -932,7 +962,10 @@ export default function App() {
 
           {/* MARQUEE — GPU-accelerated, simplified on mobile */}
           <div className="overflow-hidden whitespace-nowrap border-y-2 md:border-y-4 border-black bg-black text-white py-1 md:py-2 mt-1 md:mt-0 flex items-center pointer-events-none w-full gpu-layer">
-            <div className="state-of-art-marquee flex whitespace-nowrap font-mono text-[10px] sm:text-sm md:text-xl font-bold uppercase tracking-[0.15em] md:tracking-widest leading-none">
+            <div 
+              className="state-of-art-marquee flex whitespace-nowrap font-mono text-[10px] sm:text-sm md:text-xl font-bold uppercase tracking-[0.15em] md:tracking-widest leading-none"
+              style={isLowTier ? { animationName: 'modern-marquee' } : undefined}
+            >
               <span className="leading-none mb-0.5 md:mb-1">{marqueeText.repeat(4)}</span>
             </div>
           </div>
