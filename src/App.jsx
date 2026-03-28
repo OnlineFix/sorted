@@ -772,7 +772,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* MAIN CONTENT WRAPPER */}
-      <div className="relative flex-1 w-full flex flex-col justify-between pt-4 md:pt-6 z-10">
+      <main className="relative flex-1 w-full flex flex-col justify-between pt-4 md:pt-6 z-10">
         
         {/* TOP HEADER */}
         <header className="px-4 md:px-6 flex justify-between items-center md:items-start pointer-events-none relative z-50">
@@ -1003,7 +1003,7 @@ export default function App() {
           </footer>
         </div>
 
-      </div>
+      </main>
     </div>
   );
 }
