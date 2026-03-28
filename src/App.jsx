@@ -109,6 +109,7 @@ const ALPHABET = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./-";
 function FlipCharacter({ targetChar }) {
   const charRef = useRef(null);
   const containerRef = useRef(null);
+  const leafRef = useRef(null);
 
   useEffect(() => {
     if (!charRef.current) return;
@@ -119,25 +120,32 @@ function FlipCharacter({ targetChar }) {
     let targetIdx = ALPHABET.indexOf(targetChar);
     if (targetIdx === -1) targetIdx = 0;
 
-    // If already there, don't move
     if (currentIdx === targetIdx) return;
 
-    // Randomize the start delay for "more random" mechanical feel
     const delayTimer = setTimeout(() => {
       if (containerRef.current) containerRef.current.classList.add('flap-active');
       
       const interval = setInterval(() => {
         currentIdx = (currentIdx + 1) % ALPHABET.length;
         if (charRef.current) charRef.current.innerText = ALPHABET[currentIdx];
+        if (leafRef.current) leafRef.current.innerText = ALPHABET[currentIdx];
         
+        // Brief animation restart for each change
+        if (leafRef.current) {
+          leafRef.current.style.animation = 'none';
+          void leafRef.current.offsetHeight; // trigger reflow
+          leafRef.current.style.animation = 'mechanical-flap 0.05s linear';
+        }
+
         if (currentIdx === targetIdx) {
           clearInterval(interval);
           if (containerRef.current) containerRef.current.classList.remove('flap-active');
+          if (leafRef.current) leafRef.current.style.animation = 'none';
         }
-      }, 60); // Slightly slower for more mechanical weight
+      }, 70); 
       
       return () => clearInterval(interval);
-    }, Math.random() * 1000); 
+    }, Math.random() * 800); 
     
     return () => clearTimeout(delayTimer);
   }, [targetChar]);
@@ -145,13 +153,26 @@ function FlipCharacter({ targetChar }) {
   return (
     <div 
       ref={containerRef}
-      className="relative w-[12px] h-[20px] sm:w-[14px] sm:h-[24px] md:w-[22px] md:h-[34px] lg:w-[26px] lg:h-[40px] bg-[#111] border border-[#333] flex items-center justify-center font-mono text-[10px] sm:text-[11px] md:text-sm lg:text-base text-[#2563EB] font-bold overflow-hidden rounded-[1px] md:rounded-sm shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]"
+      className="relative w-[12px] h-[20px] sm:w-[14px] sm:h-[24px] md:w-[20px] md:h-[30px] lg:w-[26px] lg:h-[40px] bg-[#111] overflow-hidden rounded-[1px] md:rounded-sm border-x border-t border-b-[#444] border-x-[#222] border-t-[#333] shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]"
       style={{ perspective: '300px' }}
     >
-      <div className="absolute top-1/2 left-0 w-full h-[1px] bg-black/90 z-10" />
-      <span ref={charRef} className="absolute inset-0 flex items-center justify-center origin-center">
+      {/* Target/Next Char Static Display */}
+      <span ref={charRef} className="absolute inset-0 flex items-center justify-center font-mono text-[10px] sm:text-[11px] md:text-sm lg:text-base text-[#2563EB] font-bold origin-center">
         {' '}
       </span>
+
+      {/* The Animated Flap Leaf */}
+      <span 
+        ref={leafRef} 
+        className="absolute inset-0 flex items-center justify-center font-mono text-[10px] sm:text-[11px] md:text-sm lg:text-base text-[#2563EB] font-bold origin-center pointer-events-none bg-[#111]"
+        style={{ clipPath: 'inset(0% 0% 50% 0%)' }}
+      >
+        {' '}
+      </span>
+
+      {/* The Hinge (Middle Line) */}
+      <div className="absolute top-1/2 left-0 w-full h-[1px] bg-black/90 shadow-[0_1px_1px_rgba(255,255,255,0.05)] z-20" />
+      <div className="absolute top-1/2 left-0 w-full h-[1px] bg-black/40 -translate-y-[1px] z-20" />
     </div>
   );
 }
@@ -210,13 +231,13 @@ function SplitFlapBoard() {
   return (
     <div ref={containerRef} className="overflow-hidden border-y-2 md:border-y-4 border-black bg-[#0a0a0a] py-2 lg:py-3 mt-1 md:mt-0 flex items-center justify-center pointer-events-none w-full shadow-[inset_0_5px_15px_rgba(0,0,0,0.8)] z-20">
       <style>{`
-        .flap-active span {
-          animation: mechanical-flap 0.04s infinite linear;
+        .flap-active {
         }
         @keyframes mechanical-flap {
-          0% { transform: scaleX(1) scaleY(1); opacity: 1; filter: blur(0px); }
-          50% { transform: scaleX(1) scaleY(0.1); opacity: 0.8; filter: blur(0.5px); }
-          100% { transform: scaleX(1) scaleY(1); opacity: 1; filter: blur(0px); }
+          0% { transform: rotateX(0deg); filter: brightness(1.2) contrast(1.1); }
+          45% { transform: rotateX(-90deg); filter: brightness(0.6) contrast(1.2); }
+          55% { transform: rotateX(-91deg); filter: brightness(0.4) contrast(1.4); }
+          100% { transform: rotateX(-180deg); filter: brightness(1); }
         }
       `}</style>
       <div className="flex gap-[1px] md:gap-[2px] bg-black border border-gray-800 p-[1px] md:p-[2px] rounded-sm">
