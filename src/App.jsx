@@ -95,6 +95,66 @@ function GeoLine({ x1, y1, length, angle, delay = 0 }) {
     />
   );
 }
+// --- SPLIT FLAP BOARD COMPONENTS ---
+const BOARD_PHRASES = [
+  "SORTED REPAIR",
+  "HARDWARE INTERVENTION",
+  "SECURE TRANSIT NODE",
+  "NO WAITING ROOMS",
+  "TOTAL TRANSPARENCY",
+  "BROKEN IN. SORTED OUT."
+];
+
+function FlipCharacter({ char, index }) {
+  return (
+    <div 
+      className="relative w-[13px] h-[20px] sm:w-[16px] sm:h-[24px] md:w-[26px] md:h-[40px] bg-[#111] border border-[#333] flex items-center justify-center font-mono text-[10px] sm:text-xs md:text-base text-[#00E6F6] font-bold overflow-hidden rounded-[1px] md:rounded-sm shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]"
+      style={{ perspective: '300px' }}
+    >
+      <div className="absolute top-1/2 left-0 w-full h-[1px] bg-black/90 z-10" />
+      <AnimatePresence mode="popLayout">
+        <motion.span
+          key={char}
+          initial={{ rotateX: -90, opacity: 0 }}
+          animate={{ rotateX: 0, opacity: 1 }}
+          exit={{ rotateX: 90, opacity: 0 }}
+          transition={{ duration: 0.35, type: "spring", bounce: 0.2, delay: index * 0.02 }}
+          className="absolute inset-0 flex items-center justify-center origin-center"
+        >
+          {char}
+        </motion.span>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function SplitFlapBoard() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIndex((prev) => (prev + 1) % BOARD_PHRASES.length);
+    }, 4500);
+    return () => clearInterval(timer);
+  }, []);
+
+  const maxSlots = 22;
+  const currentPhrase = BOARD_PHRASES[index];
+  const padLeft = Math.floor((maxSlots - currentPhrase.length) / 2);
+  const padRight = maxSlots - currentPhrase.length - padLeft;
+  const displayString = ' '.repeat(padLeft) + currentPhrase + ' '.repeat(padRight);
+
+  return (
+    <div className="overflow-hidden border-y-2 md:border-y-4 border-black bg-[#0a0a0a] py-2 md:py-3 mt-1 md:mt-0 flex items-center justify-center pointer-events-none w-full shadow-[inset_0_5px_15px_rgba(0,0,0,0.8)] z-20">
+      <div className="flex gap-[1px] md:gap-[3px] px-1 bg-black p-1 md:p-2 rounded-sm border border-gray-800">
+        {displayString.split('').map((char, i) => (
+          <FlipCharacter key={i} char={char} index={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // --- LIVING DATA STREAM BAR ---
 function PixelMatrixBar({ isPressed = false }) {
   const isLowTier = useHardwareTier();
@@ -960,15 +1020,8 @@ export default function App() {
           </div>
 
 
-          {/* MARQUEE — GPU-accelerated, simplified on mobile */}
-          <div className="overflow-hidden whitespace-nowrap border-y-2 md:border-y-4 border-black bg-black text-white py-1 md:py-2 mt-1 md:mt-0 flex items-center pointer-events-none w-full gpu-layer">
-            <div 
-              className="state-of-art-marquee flex whitespace-nowrap font-mono text-[10px] sm:text-sm md:text-xl font-bold uppercase tracking-[0.15em] md:tracking-widest leading-none"
-              style={isLowTier ? { animationName: 'modern-marquee' } : undefined}
-            >
-              <span className="leading-none mb-0.5 md:mb-1">{marqueeText.repeat(4)}</span>
-            </div>
-          </div>
+          {/* SPLIT FLAP BOARD - Airport Style */}
+          <SplitFlapBoard />
 
           {/* FOOTER — 2 columns on mobile, 3 on desktop */}
           <footer 
