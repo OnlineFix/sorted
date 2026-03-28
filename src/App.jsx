@@ -113,7 +113,7 @@ function PixelMatrixBar({ isPressed = false }) {
     
     let logicalW, logicalH;
     let particles = [];
-    const particleCount = isLowTier ? 50 : 200; // Dense enough for a beautiful stream
+    const particleCount = isLowTier ? 150 : 200; // Dense enough for a beautiful stream
     
     // Cyberpunk/Premium palette: Brand Blue, Electric Cyan, Pure White, Neon Pink
     const colors = ['#2563EB', '#00E6F6', '#FFFFFF', '#FF003C'];
