@@ -399,11 +399,11 @@ function GlobalParticleSystem() {
       // Swipe velocity usually ranges from -200 (slow) to -2000 (fast wipe)
       const normalizedEnergy = Math.min(Math.max(Math.abs(swipeVelocity) / 500, 0.5), 3.0);
       
-      const spawnCount = isLowTier ? 40 : 150;
-      // Spawn 150 physics particles per pull (reduced from 300 to fight lag)
+      const spawnCount = isLowTier ? 80 : 450;
+      // Spawn massive amount of particles per pull
       for (let i = 0; i < spawnCount; i++) {
-        // Enforce maximum particle cap to protect CPU/GPU (600 absolute max)
-        const maxParticles = isLowTier ? 120 : 600;
+        // Massive cap for "filling the screen"
+        const maxParticles = isLowTier ? 300 : 4500;
         if (particles.length > maxParticles) {
           particles.shift(); // Remove oldest particle
         }
@@ -423,15 +423,15 @@ function GlobalParticleSystem() {
           x: x,
           y: y,
           vx: vx,
-          vy: Math.sin(angle) * velocity - (8 * normalizedEnergy), // Upward burst bias
-          size: Math.random() * 3 + 1.5,
+          vy: Math.sin(angle) * velocity - (10 * normalizedEnergy), // Violent upward burst 
+          size: Math.random() * 6 + 2.5, // Larger "balls" 
           color: colors[Math.floor(Math.random() * colors.length)],
           life: 1.0,
-          decay: Math.random() * 0.002 + 0.0005, // 15 to 60 second lifecycle (much longer)
-          friction: Math.random() * 0.02 + 0.96, // Slipperier air resistance
-          gravity: Math.random() * 0.15 + 0.15, // Lighter, floatier gravity
-          bounce: Math.random() * 0.3 + 0.5, // Bounciness ratio
-          floorOffset: Math.random() * 150 // Artificial variable floor so they pile up!
+          decay: Math.random() * 0.001 + 0.0002, // 30s to 1.5min lifecycle (even longer)
+          friction: Math.random() * 0.02 + 0.97, // Slipperier
+          gravity: Math.random() * 0.15 + 0.2, // Heavier feel
+          bounce: Math.random() * 0.3 + 0.4, // Bounciness ratio
+          floorOffset: Math.random() * (logicalH * 0.7) // Can pile up to 70% of screen!
         });
       }
     };
@@ -496,12 +496,12 @@ function GlobalParticleSystem() {
         }
         
         // Render
-        ctx.globalAlpha = p.life < 0.2 ? p.life * 5 : 1.0; // Sharp fade out at the very end
+        ctx.globalAlpha = p.life < 0.2 ? p.life * 5 : 1.0; 
         ctx.fillStyle = p.color;
         
-        // Fast dynamic glowing
-        if (p.size > 3 && !isLowTier) {
-          ctx.shadowBlur = 8;
+        // Performance Guard: Only use shadows if count is low and not on low-tier
+        if (p.size > 5 && !isLowTier && particles.length < 800) {
+          ctx.shadowBlur = 10;
           ctx.shadowColor = p.color;
         } else {
           ctx.shadowBlur = 0;
