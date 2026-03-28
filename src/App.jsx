@@ -96,59 +96,110 @@ function GeoLine({ x1, y1, length, angle, delay = 0 }) {
   );
 }
 // --- SPLIT FLAP BOARD COMPONENTS ---
-const BOARD_PHRASES = [
-  "SORTED REPAIR",
-  "HARDWARE INTERVENTION",
-  "SECURE TRANSIT NODE",
-  "NO WAITING ROOMS",
-  "TOTAL TRANSPARENCY",
-  "BROKEN IN. SORTED OUT."
-];
+const FULL_TEXT = "SORTED REPAIR // HIGH-PERFORMANCE HARDWARE INTERVENTION // SECURE TRANSIT NODE // NO WAITING ROOMS // TOTAL TRANSPARENCY // BROKEN IN. SORTED OUT. // ";
+const ALPHABET = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./-";
 
-function FlipCharacter({ char, index }) {
+function FlipCharacter({ targetChar, index }) {
+  const charRef = useRef(null);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (!charRef.current) return;
+    
+    let currentIdx = ALPHABET.indexOf(charRef.current.innerText);
+    if (currentIdx === -1) currentIdx = 0;
+    
+    let targetIdx = ALPHABET.indexOf(targetChar);
+    if (targetIdx === -1) targetIdx = 0;
+
+    if (currentIdx === targetIdx) {
+      charRef.current.innerText = targetChar;
+      return; 
+    }
+
+    const delayTimer = setTimeout(() => {
+      if (containerRef.current) containerRef.current.classList.add('flap-active');
+      
+      const interval = setInterval(() => {
+        currentIdx = (currentIdx + 1) % ALPHABET.length;
+        if (charRef.current) charRef.current.innerText = ALPHABET[currentIdx];
+        
+        if (currentIdx === targetIdx) {
+          clearInterval(interval);
+          if (containerRef.current) containerRef.current.classList.remove('flap-active');
+        }
+      }, 40);
+      
+      return () => clearInterval(interval);
+    }, index * 30);
+    
+    return () => clearTimeout(delayTimer);
+  }, [targetChar, index]);
+
   return (
     <div 
-      className="relative w-[13px] h-[20px] sm:w-[16px] sm:h-[24px] md:w-[26px] md:h-[40px] bg-[#111] border border-[#333] flex items-center justify-center font-mono text-[10px] sm:text-xs md:text-base text-[#00E6F6] font-bold overflow-hidden rounded-[1px] md:rounded-sm shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]"
+      ref={containerRef}
+      className="relative w-[12px] h-[20px] sm:w-[14px] sm:h-[24px] md:w-[22px] md:h-[34px] lg:w-[26px] lg:h-[40px] bg-[#111] border border-[#333] flex items-center justify-center font-mono text-[10px] sm:text-[11px] md:text-sm lg:text-base text-blue-500 font-bold overflow-hidden rounded-[1px] md:rounded-sm shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]"
       style={{ perspective: '300px' }}
     >
       <div className="absolute top-1/2 left-0 w-full h-[1px] bg-black/90 z-10" />
-      <AnimatePresence mode="popLayout">
-        <motion.span
-          key={char}
-          initial={{ rotateX: -90, opacity: 0 }}
-          animate={{ rotateX: 0, opacity: 1 }}
-          exit={{ rotateX: 90, opacity: 0 }}
-          transition={{ duration: 0.35, type: "spring", bounce: 0.2, delay: index * 0.02 }}
-          className="absolute inset-0 flex items-center justify-center origin-center"
-        >
-          {char}
-        </motion.span>
-      </AnimatePresence>
+      <span ref={charRef} className="absolute inset-0 flex items-center justify-center origin-center">
+        {' '}
+      </span>
     </div>
   );
 }
 
 function SplitFlapBoard() {
-  const [index, setIndex] = useState(0);
+  const containerRef = useRef(null);
+  const [slots, setSlots] = useState(0);
+  const [offset, setOffset] = useState(0);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setIndex((prev) => (prev + 1) % BOARD_PHRASES.length);
-    }, 4500);
-    return () => clearInterval(timer);
+    const calc = () => {
+      if (!containerRef.current) return;
+      const width = containerRef.current.offsetWidth;
+      const isLg = window.innerWidth >= 1024;
+      const isMd = window.innerWidth >= 768;
+      const gap = isMd ? 2 : 1; 
+      const slotWidth = (isLg ? 26 : (isMd ? 22 : 12)) + gap;
+      setSlots(Math.floor((width - 8) / slotWidth)); 
+    };
+    calc();
+    window.addEventListener('resize', calc);
+    return () => window.removeEventListener('resize', calc);
   }, []);
 
-  const maxSlots = 22;
-  const currentPhrase = BOARD_PHRASES[index];
-  const padLeft = Math.floor((maxSlots - currentPhrase.length) / 2);
-  const padRight = maxSlots - currentPhrase.length - padLeft;
-  const displayString = ' '.repeat(padLeft) + currentPhrase + ' '.repeat(padRight);
+  useEffect(() => {
+    if (slots === 0) return;
+    const timer = setInterval(() => {
+      setOffset((prev) => (prev + slots) % FULL_TEXT.length);
+    }, 8000); // 8 sec intervals give ample time to read the full generated phrase
+    return () => clearInterval(timer);
+  }, [slots]);
+
+  if (slots === 0) return <div ref={containerRef} className="w-full h-[48px] bg-[#0a0a0a]" />;
+
+  let displayString = FULL_TEXT.substring(offset, offset + slots);
+  if (displayString.length < slots) {
+    displayString += FULL_TEXT.substring(0, slots - displayString.length);
+  }
 
   return (
-    <div className="overflow-hidden border-y-2 md:border-y-4 border-black bg-[#0a0a0a] py-2 md:py-3 mt-1 md:mt-0 flex items-center justify-center pointer-events-none w-full shadow-[inset_0_5px_15px_rgba(0,0,0,0.8)] z-20">
-      <div className="flex gap-[1px] md:gap-[3px] px-1 bg-black p-1 md:p-2 rounded-sm border border-gray-800">
+    <div ref={containerRef} className="overflow-hidden border-y-2 md:border-y-4 border-black bg-[#0a0a0a] py-2 lg:py-3 mt-1 md:mt-0 flex items-center justify-center pointer-events-none w-full shadow-[inset_0_5px_15px_rgba(0,0,0,0.8)] z-20">
+      <style>{`
+        .flap-active span {
+          animation: mechanical-flap 0.04s infinite linear;
+        }
+        @keyframes mechanical-flap {
+          0% { transform: scaleX(1) scaleY(1); opacity: 1; filter: blur(0px); }
+          50% { transform: scaleX(1) scaleY(0.1); opacity: 0.8; filter: blur(0.5px); }
+          100% { transform: scaleX(1) scaleY(1); opacity: 1; filter: blur(0px); }
+        }
+      `}</style>
+      <div className="flex gap-[1px] md:gap-[2px] bg-black border border-gray-800 p-[1px] md:p-[2px] rounded-sm">
         {displayString.split('').map((char, i) => (
-          <FlipCharacter key={i} char={char} index={i} />
+          <FlipCharacter key={i} targetChar={char.toUpperCase()} index={i} />
         ))}
       </div>
     </div>
