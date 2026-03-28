@@ -424,62 +424,56 @@ function GlobalParticleSystem() {
           size: Math.random() * 5 + 3, 
           color: colors[Math.floor(Math.random() * colors.length)],
           life: 1.0,
-          decay: 0.0001, // Near infinite life to allow "filling" 
-          friction: 0.98, 
-          gravity: 0.35, 
-          bounce: 0.3,
+          decay: 0, // No decay - user wants a permanent pile
+          friction: 0.99, 
+          gravity: 0.3, 
+          bounce: 0.2,
           isSettled: false
         });
       }
     };
 
-    // Calculate UI "Solid Zones" for collision
+    // Calculate UI "Solid Zones" for collision (Only the Manifesto window)
     const getSolidZones = () => {
       const zones = [];
-      const selectors = ['header', 'footer', '.manifesto-box', '.pulse-shadow-wrap'];
-      selectors.forEach(s => {
-        document.querySelectorAll(s).forEach(el => {
-          const r = el.getBoundingClientRect();
-          if (r.width > 0 && r.height > 0) {
-            zones.push({ left: r.left, right: r.right, top: r.top, bottom: r.bottom });
-          }
-        });
+      document.querySelectorAll('.manifesto-box').forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) {
+          zones.push({ left: r.left - 5, right: r.right + 5, top: r.top - 5, bottom: r.bottom + 5 });
+        }
       });
       return zones;
     };
     
-    // Dynamic Height Map for "Water Filling" (1px resolution across screen width)
     const heightMap = new Float32Array(Math.ceil(window.innerWidth)).fill(0);
     
     const render = () => {
       ctx.clearRect(0, 0, logicalW, logicalH);
       const zones = getSolidZones();
+      const maxParticles = 6000;
+
+      while (particles.length > maxParticles) particles.shift();
       
       for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i];
         
         if (!p.isSettled) {
-          // Physics
           p.vy += p.gravity;
           p.vx *= p.friction;
           p.vy *= p.friction;
           p.x += p.vx;
           p.y += p.vy;
 
-          // --- UI COLLISION (Bouncing off boxes) ---
+          // Manifesto Collision (Only box)
           zones.forEach(z => {
             if (p.x > z.left && p.x < z.right && p.y > z.top && p.y < z.bottom) {
-              // Simple side/top/bottom bounce
-              const distTop = Math.abs(p.y - z.top);
-              const distBottom = Math.abs(p.y - z.bottom);
-              const distLeft = Math.abs(p.x - z.left);
-              const distRight = Math.abs(p.x - z.right);
-              const minDist = Math.min(distTop, distBottom, distLeft, distRight);
-              
-              if (minDist === distTop) { p.y = z.top - p.size; p.vy *= -p.bounce; }
-              else if (minDist === distBottom) { p.y = z.bottom + p.size; p.vy *= -p.bounce; }
-              else if (minDist === distLeft) { p.x = z.left - p.size; p.vx *= -p.bounce; }
-              else if (minDist === distRight) { p.x = z.right + p.size; p.vx *= -p.bounce; }
+              const dTop = Math.abs(p.y - z.top);
+              const dLeft = Math.abs(p.x - z.left);
+              const dRight = Math.abs(p.x - z.right);
+              const min = Math.min(dTop, dLeft, dRight);
+              if (min === dTop) { p.y = z.top - p.size; p.vy *= -p.bounce; }
+              else if (min === dLeft) { p.x = z.left - p.size; p.vx *= -p.bounce; }
+              else if (min === dRight) { p.x = z.right + p.size; p.vx *= -p.bounce; }
             }
           });
 
@@ -487,74 +481,72 @@ function GlobalParticleSystem() {
           if (p.x < p.size) { p.x = p.size; p.vx *= -p.bounce; }
           if (p.x > logicalW - p.size) { p.x = logicalW - p.size; p.vx *= -p.bounce; }
 
-          // --- REFINED PILE COLLISION (Height Map) ---
-          const screenX = Math.floor(Math.max(0, Math.min(logicalW - 1, p.x)));
+          // Height Map Stacking (Bottom Up Only)
+          const screenX = Math.floor(p.x);
           const currentFloor = logicalH - (heightMap[screenX] || 0);
 
           if (p.y > currentFloor - p.size) {
-            if (Math.abs(p.vy) < 1.5 && Math.abs(p.vx) < 1.5) {
-              // Settle into the "liquid" pile
+            if (Math.abs(p.vy) < 1.2) {
               p.isSettled = true;
               p.y = currentFloor - p.size/2;
-              // Add to height map (approximate volume)
-              const spread = Math.ceil(p.size);
+              const spread = 4;
               for (let sx = screenX - spread; sx <= screenX + spread; sx++) {
                 if (sx >= 0 && sx < logicalW) {
-                  const dist = Math.abs(sx - screenX);
-                  const add = Math.max(0, p.size * 1.5 * (1 - dist / spread));
-                  heightMap[sx] += add;
+                  heightMap[sx] += (p.size * 0.4);
                 }
               }
             } else {
               p.y = currentFloor - p.size;
               p.vy *= -p.bounce;
-              p.vx *= 0.8; // Friction
             }
           }
         }
 
-        // --- FLUID LEVELING (Settled particles move to lowest point) ---
+        // Lateral Flow (The Water Effect - spill into holes)
         if (p.isSettled) {
-          const screenX = Math.floor(p.x);
-          const leftH = heightMap[screenX - 2] || 0;
-          const rightH = heightMap[screenX + 2] || 0;
-          if (leftH < heightMap[screenX] - 2) p.x -= 1;
-          else if (rightH < heightMap[screenX] - 2) p.x += 1;
+          const sx = Math.floor(p.x);
+          const lH = heightMap[sx - 4] || 0;
+          const rH = heightMap[sx + 4] || 0;
+          const cH = heightMap[sx];
+          
+          if (lH < cH - 1) { 
+            p.x -= 2; 
+            heightMap[sx] -= 0.1; 
+            if (sx - 4 >= 0) heightMap[sx - 4] += 0.1;
+          } else if (rH < cH - 1) { 
+            p.x += 2; 
+            heightMap[sx] -= 0.1; 
+            if (sx + 4 < logicalW) heightMap[sx + 4] += 0.1;
+          }
+          
+          // Keep Y locked to terrain
+          p.y = logicalH - heightMap[sx] - p.size/2;
+          
+          // Prevent being pushed off screen
+          if (p.x < 0) p.x = 0;
+          if (p.x > logicalW) p.x = logicalW;
         }
 
-        // Pointer Repulsion (Active for all)
+        // Pointer Stir
         if (window.pointerPosition && window.pointerPosition.active) {
           const dx = p.x - window.pointerPosition.x;
           const dy = p.y - window.pointerPosition.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < 150) {
-            p.isSettled = false; // "Stir" the water 
-            const force = (150 - distance) / 150;
-            const angle = Math.atan2(dy, dx);
-            p.vx += Math.cos(angle) * force * 5;
-            p.vy += Math.sin(angle) * force * 5;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 150) {
+            p.isSettled = false;
+            const f = (150 - dist) / 150;
+            const a = Math.atan2(dy, dx);
+            p.vx += Math.cos(a) * f * 6;
+            p.vy += Math.sin(a) * f * 6;
           }
         }
 
-        // Render
         ctx.fillStyle = p.color;
-        if (p.size > 6 && !isLowTier && particles.length < 1000) {
-          ctx.shadowBlur = 8;
-          ctx.shadowColor = p.color;
-        } else {
-          ctx.shadowBlur = 0;
-        }
-        
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
-        
-        // Age/Delete only if absolutely necessary
-        p.life -= p.decay;
-        if (p.life <= 0) particles.splice(i, 1);
       }
       
-      ctx.shadowBlur = 0;
       animationFrameId = requestAnimationFrame(render);
     };
     
