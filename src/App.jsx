@@ -95,28 +95,34 @@ function GeoLine({ x1, y1, length, angle, delay = 0 }) {
     />
   );
 }
-// --- SPLIT FLAP BOARD COMPONENTS ---
-const FULL_TEXT = "SORTED REPAIR // HIGH-PERFORMANCE HARDWARE INTERVENTION // SECURE TRANSIT NODE // NO WAITING ROOMS // TOTAL TRANSPARENCY // BROKEN IN. SORTED OUT. // ";
+// --- SPLIT FLAP BOARD ---
+const BOARD_PHRASES = [
+  "SORTED REPAIR",
+  "HARDWARE INTERVENTION",
+  "SECURE TRANSIT NODE",
+  "NO WAITING ROOMS",
+  "TOTAL TRANSPARENCY",
+  "BROKEN IN. SORTED OUT."
+];
 const ALPHABET = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./-";
 
-function FlipCharacter({ targetChar, index }) {
+function FlipCharacter({ targetChar }) {
   const charRef = useRef(null);
   const containerRef = useRef(null);
 
   useEffect(() => {
     if (!charRef.current) return;
     
-    let currentIdx = ALPHABET.indexOf(charRef.current.innerText);
+    let currentIdx = ALPHABET.indexOf(charRef.current.innerText || ' ');
     if (currentIdx === -1) currentIdx = 0;
     
     let targetIdx = ALPHABET.indexOf(targetChar);
     if (targetIdx === -1) targetIdx = 0;
 
-    if (currentIdx === targetIdx) {
-      charRef.current.innerText = targetChar;
-      return; 
-    }
+    // If already there, don't move
+    if (currentIdx === targetIdx) return;
 
+    // Randomize the start delay for "more random" mechanical feel
     const delayTimer = setTimeout(() => {
       if (containerRef.current) containerRef.current.classList.add('flap-active');
       
@@ -128,18 +134,18 @@ function FlipCharacter({ targetChar, index }) {
           clearInterval(interval);
           if (containerRef.current) containerRef.current.classList.remove('flap-active');
         }
-      }, 40);
+      }, 60); // Slightly slower for more mechanical weight
       
       return () => clearInterval(interval);
-    }, index * 30);
+    }, Math.random() * 1000); 
     
     return () => clearTimeout(delayTimer);
-  }, [targetChar, index]);
+  }, [targetChar]);
 
   return (
     <div 
       ref={containerRef}
-      className="relative w-[12px] h-[20px] sm:w-[14px] sm:h-[24px] md:w-[22px] md:h-[34px] lg:w-[26px] lg:h-[40px] bg-[#111] border border-[#333] flex items-center justify-center font-mono text-[10px] sm:text-[11px] md:text-sm lg:text-base text-blue-500 font-bold overflow-hidden rounded-[1px] md:rounded-sm shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]"
+      className="relative w-[12px] h-[20px] sm:w-[14px] sm:h-[24px] md:w-[22px] md:h-[34px] lg:w-[26px] lg:h-[40px] bg-[#111] border border-[#333] flex items-center justify-center font-mono text-[10px] sm:text-[11px] md:text-sm lg:text-base text-[#2563EB] font-bold overflow-hidden rounded-[1px] md:rounded-sm shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]"
       style={{ perspective: '300px' }}
     >
       <div className="absolute top-1/2 left-0 w-full h-[1px] bg-black/90 z-10" />
@@ -153,7 +159,7 @@ function FlipCharacter({ targetChar, index }) {
 function SplitFlapBoard() {
   const containerRef = useRef(null);
   const [slots, setSlots] = useState(0);
-  const [offset, setOffset] = useState(0);
+  const [phraseIdx, setPhraseIdx] = useState(0);
 
   useEffect(() => {
     const calc = () => {
@@ -163,7 +169,7 @@ function SplitFlapBoard() {
       const isMd = window.innerWidth >= 768;
       const gap = isMd ? 2 : 1; 
       const slotWidth = (isLg ? 26 : (isMd ? 22 : 12)) + gap;
-      setSlots(Math.floor((width - 8) / slotWidth)); 
+      setSlots(Math.floor((width - 16) / slotWidth)); 
     };
     calc();
     window.addEventListener('resize', calc);
@@ -173,17 +179,33 @@ function SplitFlapBoard() {
   useEffect(() => {
     if (slots === 0) return;
     const timer = setInterval(() => {
-      setOffset((prev) => (prev + slots) % FULL_TEXT.length);
-    }, 8000); // 8 sec intervals give ample time to read the full generated phrase
+      setPhraseIdx((prev) => (prev + 1) % BOARD_PHRASES.length);
+    }, 10000); // 10s for slower, premium feel
     return () => clearInterval(timer);
   }, [slots]);
 
   if (slots === 0) return <div ref={containerRef} className="w-full h-[48px] bg-[#0a0a0a]" />;
 
-  let displayString = FULL_TEXT.substring(offset, offset + slots);
-  if (displayString.length < slots) {
-    displayString += FULL_TEXT.substring(0, slots - displayString.length);
+  // LOGIC: Fit one or two phrases. If two, separate with "//".
+  // Never cut a phrase.
+  let currentPhrase = BOARD_PHRASES[phraseIdx];
+  let secondPhraseIdx = (phraseIdx + 1) % BOARD_PHRASES.length;
+  let secondPhrase = BOARD_PHRASES[secondPhraseIdx];
+  
+  let combined = currentPhrase;
+  // If desktop, try to add second phrase
+  if (slots > 45) {
+    const candidate = currentPhrase + " // " + secondPhrase;
+    if (candidate.length <= slots) {
+      combined = candidate;
+    }
   }
+
+  // Padding to fill bar and center
+  const padding = Math.max(0, slots - combined.length);
+  const padLeft = Math.floor(padding / 2);
+  const padRight = padding - padLeft;
+  const displayString = (" ".repeat(padLeft) + combined + " ".repeat(padRight)).toUpperCase();
 
   return (
     <div ref={containerRef} className="overflow-hidden border-y-2 md:border-y-4 border-black bg-[#0a0a0a] py-2 lg:py-3 mt-1 md:mt-0 flex items-center justify-center pointer-events-none w-full shadow-[inset_0_5px_15px_rgba(0,0,0,0.8)] z-20">
@@ -199,7 +221,7 @@ function SplitFlapBoard() {
       `}</style>
       <div className="flex gap-[1px] md:gap-[2px] bg-black border border-gray-800 p-[1px] md:p-[2px] rounded-sm">
         {displayString.split('').map((char, i) => (
-          <FlipCharacter key={i} targetChar={char.toUpperCase()} index={i} />
+          <FlipCharacter key={i} targetChar={char} />
         ))}
       </div>
     </div>
