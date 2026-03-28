@@ -95,32 +95,27 @@ function GeoLine({ x1, y1, length, angle, delay = 0 }) {
     />
   );
 }
-// --- SPLIT FLAP BOARD ---
-const BOARD_PHRASES = [
-  "SORTED REPAIR",
-  "HARDWARE INTERVENTION",
-  "SECURE TRANSIT NODE",
-  "NO WAITING ROOMS",
-  "TOTAL TRANSPARENCY",
-  "BROKEN IN. SORTED OUT."
-];
+// --- SPLIT FLAP BOARD COMPONENTS ---
+const FULL_TEXT = "SORTED REPAIR // HIGH-PERFORMANCE HARDWARE INTERVENTION // SECURE TRANSIT NODE // NO WAITING ROOMS // TOTAL TRANSPARENCY // BROKEN IN. SORTED OUT. // ";
 const ALPHABET = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./-";
 
-function FlipCharacter({ targetChar }) {
+function FlipCharacter({ targetChar, index }) {
   const charRef = useRef(null);
   const containerRef = useRef(null);
-  const leafRef = useRef(null);
 
   useEffect(() => {
     if (!charRef.current) return;
     
-    let currentIdx = ALPHABET.indexOf(charRef.current.innerText || ' ');
+    let currentIdx = ALPHABET.indexOf(charRef.current.innerText);
     if (currentIdx === -1) currentIdx = 0;
     
     let targetIdx = ALPHABET.indexOf(targetChar);
     if (targetIdx === -1) targetIdx = 0;
 
-    if (currentIdx === targetIdx) return;
+    if (currentIdx === targetIdx) {
+      charRef.current.innerText = targetChar;
+      return; 
+    }
 
     const delayTimer = setTimeout(() => {
       if (containerRef.current) containerRef.current.classList.add('flap-active');
@@ -128,51 +123,29 @@ function FlipCharacter({ targetChar }) {
       const interval = setInterval(() => {
         currentIdx = (currentIdx + 1) % ALPHABET.length;
         if (charRef.current) charRef.current.innerText = ALPHABET[currentIdx];
-        if (leafRef.current) leafRef.current.innerText = ALPHABET[currentIdx];
         
-        // Brief animation restart for each change
-        if (leafRef.current) {
-          leafRef.current.style.animation = 'none';
-          void leafRef.current.offsetHeight; // trigger reflow
-          leafRef.current.style.animation = 'mechanical-flap 0.05s linear';
-        }
-
         if (currentIdx === targetIdx) {
           clearInterval(interval);
           if (containerRef.current) containerRef.current.classList.remove('flap-active');
-          if (leafRef.current) leafRef.current.style.animation = 'none';
         }
-      }, 70); 
+      }, 40);
       
       return () => clearInterval(interval);
-    }, Math.random() * 800); 
+    }, index * 30);
     
     return () => clearTimeout(delayTimer);
-  }, [targetChar]);
+  }, [targetChar, index]);
 
   return (
     <div 
       ref={containerRef}
-      className="relative w-[12px] h-[20px] sm:w-[14px] sm:h-[24px] md:w-[20px] md:h-[30px] lg:w-[26px] lg:h-[40px] bg-[#111] overflow-hidden rounded-[1px] md:rounded-sm border-x border-t border-b-[#444] border-x-[#222] border-t-[#333] shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]"
+      className="relative w-[12px] h-[20px] sm:w-[14px] sm:h-[24px] md:w-[22px] md:h-[34px] lg:w-[26px] lg:h-[40px] bg-[#111] border border-[#333] flex items-center justify-center font-mono text-[10px] sm:text-[11px] md:text-sm lg:text-base text-blue-500 font-bold overflow-hidden rounded-[1px] md:rounded-sm shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]"
       style={{ perspective: '300px' }}
     >
-      {/* Target/Next Char Static Display */}
-      <span ref={charRef} className="absolute inset-0 flex items-center justify-center font-mono text-[10px] sm:text-[11px] md:text-sm lg:text-base text-[#2563EB] font-bold origin-center">
+      <div className="absolute top-1/2 left-0 w-full h-[1px] bg-black/90 z-10" />
+      <span ref={charRef} className="absolute inset-0 flex items-center justify-center origin-center">
         {' '}
       </span>
-
-      {/* The Animated Flap Leaf */}
-      <span 
-        ref={leafRef} 
-        className="absolute inset-0 flex items-center justify-center font-mono text-[10px] sm:text-[11px] md:text-sm lg:text-base text-[#2563EB] font-bold origin-center pointer-events-none bg-[#111]"
-        style={{ clipPath: 'inset(0% 0% 50% 0%)' }}
-      >
-        {' '}
-      </span>
-
-      {/* The Hinge (Middle Line) */}
-      <div className="absolute top-1/2 left-0 w-full h-[1px] bg-black/90 shadow-[0_1px_1px_rgba(255,255,255,0.05)] z-20" />
-      <div className="absolute top-1/2 left-0 w-full h-[1px] bg-black/40 -translate-y-[1px] z-20" />
     </div>
   );
 }
@@ -180,7 +153,7 @@ function FlipCharacter({ targetChar }) {
 function SplitFlapBoard() {
   const containerRef = useRef(null);
   const [slots, setSlots] = useState(0);
-  const [phraseIdx, setPhraseIdx] = useState(0);
+  const [offset, setOffset] = useState(0);
 
   useEffect(() => {
     const calc = () => {
@@ -190,7 +163,7 @@ function SplitFlapBoard() {
       const isMd = window.innerWidth >= 768;
       const gap = isMd ? 2 : 1; 
       const slotWidth = (isLg ? 26 : (isMd ? 22 : 12)) + gap;
-      setSlots(Math.floor((width - 16) / slotWidth)); 
+      setSlots(Math.floor((width - 8) / slotWidth)); 
     };
     calc();
     window.addEventListener('resize', calc);
@@ -200,49 +173,33 @@ function SplitFlapBoard() {
   useEffect(() => {
     if (slots === 0) return;
     const timer = setInterval(() => {
-      setPhraseIdx((prev) => (prev + 1) % BOARD_PHRASES.length);
-    }, 10000); // 10s for slower, premium feel
+      setOffset((prev) => (prev + slots) % FULL_TEXT.length);
+    }, 8000); // 8 sec intervals give ample time to read the full generated phrase
     return () => clearInterval(timer);
   }, [slots]);
 
   if (slots === 0) return <div ref={containerRef} className="w-full h-[48px] bg-[#0a0a0a]" />;
 
-  // LOGIC: Fit one or two phrases. If two, separate with "//".
-  // Never cut a phrase.
-  let currentPhrase = BOARD_PHRASES[phraseIdx];
-  let secondPhraseIdx = (phraseIdx + 1) % BOARD_PHRASES.length;
-  let secondPhrase = BOARD_PHRASES[secondPhraseIdx];
-  
-  let combined = currentPhrase;
-  // If desktop, try to add second phrase
-  if (slots > 45) {
-    const candidate = currentPhrase + " // " + secondPhrase;
-    if (candidate.length <= slots) {
-      combined = candidate;
-    }
+  let displayString = FULL_TEXT.substring(offset, offset + slots);
+  if (displayString.length < slots) {
+    displayString += FULL_TEXT.substring(0, slots - displayString.length);
   }
-
-  // Padding to fill bar and center
-  const padding = Math.max(0, slots - combined.length);
-  const padLeft = Math.floor(padding / 2);
-  const padRight = padding - padLeft;
-  const displayString = (" ".repeat(padLeft) + combined + " ".repeat(padRight)).toUpperCase();
 
   return (
     <div ref={containerRef} className="overflow-hidden border-y-2 md:border-y-4 border-black bg-[#0a0a0a] py-2 lg:py-3 mt-1 md:mt-0 flex items-center justify-center pointer-events-none w-full shadow-[inset_0_5px_15px_rgba(0,0,0,0.8)] z-20">
       <style>{`
-        .flap-active {
+        .flap-active span {
+          animation: mechanical-flap 0.04s infinite linear;
         }
         @keyframes mechanical-flap {
-          0% { transform: rotateX(0deg); filter: brightness(1.2) contrast(1.1); }
-          45% { transform: rotateX(-90deg); filter: brightness(0.6) contrast(1.2); }
-          55% { transform: rotateX(-91deg); filter: brightness(0.4) contrast(1.4); }
-          100% { transform: rotateX(-180deg); filter: brightness(1); }
+          0% { transform: scaleX(1) scaleY(1); opacity: 1; filter: blur(0px); }
+          50% { transform: scaleX(1) scaleY(0.1); opacity: 0.8; filter: blur(0.5px); }
+          100% { transform: scaleX(1) scaleY(1); opacity: 1; filter: blur(0px); }
         }
       `}</style>
       <div className="flex gap-[1px] md:gap-[2px] bg-black border border-gray-800 p-[1px] md:p-[2px] rounded-sm">
         {displayString.split('').map((char, i) => (
-          <FlipCharacter key={i} targetChar={char} />
+          <FlipCharacter key={i} targetChar={char.toUpperCase()} index={i} />
         ))}
       </div>
     </div>
@@ -399,154 +356,121 @@ function GlobalParticleSystem() {
       // Swipe velocity usually ranges from -200 (slow) to -2000 (fast wipe)
       const normalizedEnergy = Math.min(Math.max(Math.abs(swipeVelocity) / 500, 0.5), 3.0);
       
-      const spawnCount = isLowTier ? 80 : 450;
-      // Spawn massive amount of particles per pull
+      const spawnCount = isLowTier ? 40 : 150;
+      // Spawn 150 physics particles per pull (reduced from 300 to fight lag)
       for (let i = 0; i < spawnCount; i++) {
-        // Massive cap for "filling the screen"
-        const maxParticles = isLowTier ? 300 : 4500;
+        // Enforce maximum particle cap to protect CPU/GPU (600 absolute max)
+        const maxParticles = isLowTier ? 120 : 600;
         if (particles.length > maxParticles) {
           particles.shift(); // Remove oldest particle
         }
         
         const angle = Math.random() * Math.PI * 2;
-        const velocity = (Math.random() * 12 + 6) * normalizedEnergy; 
+        const velocity = (Math.random() * 10 + 4) * normalizedEnergy; 
         
+        // Add horizontal velocity inherited from the swipe!
+        // The user pulls LEFT (negative velocity), but we want the particles 
+        // to blast out to the RIGHT out of the latch block
         let vx = Math.cos(angle) * velocity;
         if (swipeVelocity < 0) {
-          vx += (Math.abs(swipeVelocity) / 80) * (Math.random() * 0.5 + 0.5); 
+          vx += (Math.abs(swipeVelocity) / 100) * (Math.random() * 0.5 + 0.5); // Boost rightward
         }
 
         particles.push({
           x: x,
           y: y,
           vx: vx,
-          vy: Math.sin(angle) * velocity - (12 * normalizedEnergy),
-          size: Math.random() * 5 + 3, 
+          vy: Math.sin(angle) * velocity - (8 * normalizedEnergy), // Upward burst bias
+          size: Math.random() * 3 + 1.5,
           color: colors[Math.floor(Math.random() * colors.length)],
           life: 1.0,
-          decay: 0, // No decay - user wants a permanent pile
-          friction: 0.99, 
-          gravity: 0.3, 
-          bounce: 0.2,
-          isSettled: false
+          decay: Math.random() * 0.002 + 0.0005, // 15 to 60 second lifecycle (much longer)
+          friction: Math.random() * 0.02 + 0.96, // Slipperier air resistance
+          gravity: Math.random() * 0.15 + 0.15, // Lighter, floatier gravity
+          bounce: Math.random() * 0.3 + 0.5, // Bounciness ratio
+          floorOffset: Math.random() * 150 // Artificial variable floor so they pile up!
         });
       }
     };
-
-    // Calculate UI "Solid Zones" for collision (Only the Manifesto window)
-    const getSolidZones = () => {
-      const zones = [];
-      document.querySelectorAll('.manifesto-box').forEach(el => {
-        const r = el.getBoundingClientRect();
-        if (r.width > 0 && r.height > 0) {
-          zones.push({ left: r.left - 5, right: r.right + 5, top: r.top - 5, bottom: r.bottom + 5 });
-        }
-      });
-      return zones;
-    };
-    
-    const heightMap = new Float32Array(Math.ceil(window.innerWidth)).fill(0);
     
     const render = () => {
       ctx.clearRect(0, 0, logicalW, logicalH);
-      const zones = getSolidZones();
-      const maxParticles = 6000;
-
-      while (particles.length > maxParticles) particles.shift();
       
       for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i];
         
-        if (!p.isSettled) {
-          p.vy += p.gravity;
-          p.vx *= p.friction;
-          p.vy *= p.friction;
-          p.x += p.vx;
-          p.y += p.vy;
-
-          // Manifesto Collision (Only box)
-          zones.forEach(z => {
-            if (p.x > z.left && p.x < z.right && p.y > z.top && p.y < z.bottom) {
-              const dTop = Math.abs(p.y - z.top);
-              const dLeft = Math.abs(p.x - z.left);
-              const dRight = Math.abs(p.x - z.right);
-              const min = Math.min(dTop, dLeft, dRight);
-              if (min === dTop) { p.y = z.top - p.size; p.vy *= -p.bounce; }
-              else if (min === dLeft) { p.x = z.left - p.size; p.vx *= -p.bounce; }
-              else if (min === dRight) { p.x = z.right + p.size; p.vx *= -p.bounce; }
-            }
-          });
-
-          // Screen Bound collisions
-          if (p.x < p.size) { p.x = p.size; p.vx *= -p.bounce; }
-          if (p.x > logicalW - p.size) { p.x = logicalW - p.size; p.vx *= -p.bounce; }
-
-          // Height Map Stacking (Bottom Up Only)
-          const screenX = Math.floor(p.x);
-          const currentFloor = logicalH - (heightMap[screenX] || 0);
-
-          if (p.y > currentFloor - p.size) {
-            if (Math.abs(p.vy) < 1.2) {
-              p.isSettled = true;
-              p.y = currentFloor - p.size/2;
-              const spread = 4;
-              for (let sx = screenX - spread; sx <= screenX + spread; sx++) {
-                if (sx >= 0 && sx < logicalW) {
-                  heightMap[sx] += (p.size * 0.4);
-                }
-              }
-            } else {
-              p.y = currentFloor - p.size;
-              p.vy *= -p.bounce;
-            }
-          }
-        }
-
-        // Lateral Flow (The Water Effect - spill into holes)
-        if (p.isSettled) {
-          const sx = Math.floor(p.x);
-          const lH = heightMap[sx - 4] || 0;
-          const rH = heightMap[sx + 4] || 0;
-          const cH = heightMap[sx];
-          
-          if (lH < cH - 1) { 
-            p.x -= 2; 
-            heightMap[sx] -= 0.1; 
-            if (sx - 4 >= 0) heightMap[sx - 4] += 0.1;
-          } else if (rH < cH - 1) { 
-            p.x += 2; 
-            heightMap[sx] -= 0.1; 
-            if (sx + 4 < logicalW) heightMap[sx + 4] += 0.1;
-          }
-          
-          // Keep Y locked to terrain
-          p.y = logicalH - heightMap[sx] - p.size/2;
-          
-          // Prevent being pushed off screen
-          if (p.x < 0) p.x = 0;
-          if (p.x > logicalW) p.x = logicalW;
-        }
-
-        // Pointer Stir
+        // --- PHASE 3: MAGNETIC REPULSION FIELD ---
         if (window.pointerPosition && window.pointerPosition.active) {
           const dx = p.x - window.pointerPosition.x;
           const dy = p.y - window.pointerPosition.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 150) {
-            p.isSettled = false;
-            const f = (150 - dist) / 150;
-            const a = Math.atan2(dy, dx);
-            p.vx += Math.cos(a) * f * 6;
-            p.vy += Math.sin(a) * f * 6;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          const repulsionRadius = 150; // The size of our invisible plow
+          
+          if (distance < repulsionRadius) {
+            // Calculate repulsion force (closer = much stronger)
+            const force = (repulsionRadius - distance) / repulsionRadius;
+            const angle = Math.atan2(dy, dx);
+            
+            // Apply violent velocity vector away from the pointer
+            const blastStrength = 3.0;
+            p.vx += Math.cos(angle) * force * blastStrength;
+            p.vy += Math.sin(angle) * force * blastStrength;
           }
         }
 
+        // Apply Physics
+        p.vy += p.gravity;
+        p.vx *= p.friction;
+        p.vy *= p.friction;
+        p.x += p.vx;
+        p.y += p.vy;
+        
+        // Floor collision (incorporating the variable offset to simulate a 3D pile)
+        const floorY = logicalH - p.size - p.floorOffset;
+        if (p.y > floorY) {
+          p.y = floorY;
+          p.vy *= -p.bounce;
+          p.vx *= 0.85; // Heavy ground friction on X axis to slow rolling
+        }
+        
+        // Wall collisions
+        if (p.x < p.size) {
+          p.x = p.size;
+          p.vx *= -p.bounce;
+        } else if (p.x > logicalW - p.size) {
+          p.x = logicalW - p.size;
+          p.vx *= -p.bounce;
+        }
+        
+        // Age the particle
+        p.life -= p.decay;
+        
+        // Garbage collection
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+        
+        // Render
+        ctx.globalAlpha = p.life < 0.2 ? p.life * 5 : 1.0; // Sharp fade out at the very end
         ctx.fillStyle = p.color;
+        
+        // Fast dynamic glowing
+        if (p.size > 3 && !isLowTier) {
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = p.color;
+        } else {
+          ctx.shadowBlur = 0;
+        }
+        
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
       }
       
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1.0;
       animationFrameId = requestAnimationFrame(render);
     };
     
@@ -686,9 +610,7 @@ export default function App() {
   const [isLatchActive, setIsLatchActive] = useState(false);
 
   const handleLatchDragEnd = (event, info) => {
-    // Increase threshold for wider desktop bar
-    const threshold = isMobile ? -40 : -60;
-    if (info.offset.x < threshold) {
+    if (info.offset.x < -40) {
       // Only toggle the manifesto if it's the VERY FIRST time they unlock it
       if (!isProtocolUnlocked) {
         setManifestoOpen(true);
@@ -1001,7 +923,7 @@ export default function App() {
                 onPointerLeave={() => setIsLatchActive(false)}
                 onPointerCancel={() => setIsLatchActive(false)}
                 whileTap={{ scale: 0.95 }}
-                className="h-5 md:h-[42px] w-24 md:w-44 border-2 md:border-4 border-black overflow-hidden relative z-[2] cursor-grab bg-white touch-pan-y"
+                className="h-5 w-24 md:w-32 border-2 border-black overflow-hidden relative z-[2] cursor-grab bg-white touch-pan-y"
               >
                 <PixelMatrixBar isPressed={isLatchActive} />
               </motion.div>
@@ -1111,7 +1033,7 @@ export default function App() {
                     <span className="font-bold tracking-widest uppercase truncate pr-4 text-[9px] md:text-xs">SYS_Protocol // "MANIFESTO"</span>
                     <span className="text-blue-500 animate-pulse flex items-center gap-1.5 md:gap-2 shrink-0 text-[9px] md:text-xs"><Radio size={10}/> LIVE</span>
                   </div>
-                  <div className="p-3 md:p-6 space-y-3 md:space-y-4 text-gray-400 leading-relaxed max-h-[45vh] md:max-h-[50vh] overflow-y-auto ios-scroll manifesto-box" id="manifesto-protocol-window">
+                  <div className="p-3 md:p-6 space-y-3 md:space-y-4 text-gray-400 leading-relaxed max-h-[45vh] md:max-h-[50vh] overflow-y-auto ios-scroll">
                     <p>Modern consoles are highly engineered machines. <span className="text-white font-black block mt-1">The industry that fixes them is a mess.</span></p>
                     <p>Traditional repair shops hide behind cluttered high-street counters. They use cheap parts to cover expensive rent, and they treat the repair process like a secret. We reject that model.</p>
                     <p className="font-black text-blue-500 text-sm md:text-base uppercase underline decoration-2 underline-offset-4">"SORTED REPAIR" is a structural shift.</p>
